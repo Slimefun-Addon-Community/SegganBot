@@ -1,5 +1,8 @@
 package io.github.seggan.segganbot;
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import net.dv8tion.jda.api.JDABuilder;
 
 import javax.annotation.Nonnull;
@@ -8,12 +11,22 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.Map;
 
 public class Main {
+    public static final Map<String, String> tags = new HashMap<>();
+
     public static void main(String[] args) throws IOException, LoginException, InterruptedException {
         JDABuilder jdaBuilder = JDABuilder.createDefault(getResourceAsString("token.txt"));
         jdaBuilder.addEventListeners(new Listener());
         jdaBuilder.build().awaitReady();
+
+        JsonObject jsonObject = JsonParser.parseString(getResourceAsString("tags.json")).getAsJsonObject();
+
+        for (Map.Entry<String, JsonElement> entry : jsonObject.entrySet()) {
+            tags.put(entry.getKey(), entry.getValue().getAsString());
+        }
     }
 
     @Nonnull

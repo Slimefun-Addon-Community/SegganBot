@@ -8,6 +8,7 @@ import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -21,8 +22,10 @@ public final class Listener extends ListenerAdapter {
             return;
         }
 
-        if (e.getMessage().getContentRaw().equals("?ping")) {
-            Util.sendMessage(e.getChannel(), "Pong!");
+        for (Map.Entry<String, String> entry : Main.tags.entrySet()) {
+            if (e.getMessage().getContentRaw().startsWith(entry.getKey())) {
+                Util.sendMessage(e.getChannel(), entry.getValue());
+            }
         }
 
         processIncorrectSlimefun(e);
