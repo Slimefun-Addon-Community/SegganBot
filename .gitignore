@@ -3,3 +3,4 @@
 gradle
 gradlew
 gradlew.bat
+src/main/resources/token.txt
