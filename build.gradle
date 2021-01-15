@@ -1,9 +1,15 @@
 plugins {
     id 'java'
+    id 'application'
+    id "com.github.johnrengelman.shadow" version "6.1.0"
 }
+
+mainClassName = "io.github.seggan.segganbot.Main"
 
 group 'io.github.seggan.segganbot'
 version '1.0'
+
+sourceCompatibility = 1.8
 
 repositories {
     mavenCentral()
