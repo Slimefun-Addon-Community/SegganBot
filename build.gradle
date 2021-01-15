@@ -1,0 +1,16 @@
+plugins {
+    id 'java'
+}
+
+group 'io.github.seggan.segganbot'
+version '1.0'
+
+repositories {
+    mavenCentral()
+    jcenter()
+}
+
+dependencies {
+    testCompile group: 'junit', name: 'junit', version: '4.12'
+    implementation 'net.dv8tion:JDA:4.2.0_227'
+}
