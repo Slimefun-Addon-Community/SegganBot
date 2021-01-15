@@ -1,6 +1,9 @@
 package io.github.seggan.segganbot;
 
+import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.MessageChannel;
+import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.jetbrains.annotations.NotNull;
@@ -39,16 +42,20 @@ public final class Listener extends ListenerAdapter {
 
     private static void processWalshbot(MessageReceivedEvent e) {
         if (e.getMessage().getContentRaw().toLowerCase().contains("walshbot")) {
-            Util.sendMessage(e.getChannel(), "Pfft, I am *obviously* better than that old rusty robot blob.");
+            Util.sendMessage(e.getChannel(), "Pfft, I am *obviously* better than that rusty old robot blob.");
         }
 
-        Member member = e.getGuild().getMember(e.getAuthor());
-        if (member == null || !e.getGuild().getSelfMember().canInteract(member)) return;
+        MessageChannel channel = e.getChannel();
+        User author = e.getAuthor();
+        Guild guild = e.getGuild();
+
+        Member member = guild.getMember(author);
+        if (member == null || !guild.getSelfMember().canInteract(member)) return;
 
         if (member.getEffectiveName().toLowerCase().contains("walshbot")) {
-            member.modifyNickname(e.getAuthor().getName()).queue();
-            e.getChannel().deleteMessageById(e.getMessageId()).queue();
-            Util.sendMessage(e.getChannel(), "Hey, who let you in here?");
+            member.modifyNickname(author.getName()).queue();
+            channel.deleteMessageById(e.getMessageId()).queue();
+            Util.sendMessage(channel, "Hey, who let you in here?");
         }
     }
 }
