@@ -1,7 +1,5 @@
 package io.github.seggan.segganbot;
 
-import net.dv8tion.jda.api.AccountType;
-import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 
 import javax.annotation.Nonnull;
@@ -16,6 +14,8 @@ public class Main {
         JDABuilder jdaBuilder = JDABuilder.createDefault(getResourceAsString("token.txt"));
         jdaBuilder.addEventListeners(new Listener());
         jdaBuilder.build().awaitReady();
+        // JDA jda = JDABuilder.createDefault(getResourceAsString("testing_token.txt")).build().awaitReady();
+        // jda.getTextChannelById(799455256793710622L).sendMessage("test").queue();
     }
 
     @Nonnull
