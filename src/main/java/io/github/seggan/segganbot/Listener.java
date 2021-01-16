@@ -1,8 +1,14 @@
 package io.github.seggan.segganbot;
 
+import com.besaba.revonline.pastebinapi.paste.Paste;
+import com.besaba.revonline.pastebinapi.paste.PasteExpire;
+import com.besaba.revonline.pastebinapi.paste.PasteVisiblity;
+import com.besaba.revonline.pastebinapi.response.Response;
+import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.MessageChannel;
+import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
@@ -14,6 +20,7 @@ import java.util.regex.Pattern;
 
 public final class Listener extends ListenerAdapter {
     private static final Pattern INCORRECT_SLIMEFUN_PATTERN = Pattern.compile("[Ss]lime(?:F|( [Ff]))un");
+    private static final Pattern ERROR_PATTERN = Pattern.compile("(\\..+(Excepetion|Error): ')[\\s\\S]+(at .+(\\(.+\\.java:[1-9]+\\)))");
 
     @Override
     public void onMessageReceived(@NotNull MessageReceivedEvent e) {
@@ -28,7 +35,45 @@ public final class Listener extends ListenerAdapter {
             }
         }
 
+        processErrors(e);
         processIncorrectSlimefun(e);
+    }
+
+    private static void processErrors(MessageReceivedEvent e) {
+        if (ERROR_PATTERN.matcher(e.getMessage().getContentRaw()).find()) {
+            Paste paste = Main.factory.createPaste()
+                .setTitle("Message Contents")
+                .setRaw(e.getMessage().getContentRaw())
+                .setMachineFriendlyLanguage("text")
+                .setExpire(PasteExpire.OneWeek)
+                .setVisiblity(PasteVisiblity.Public)
+                .build();
+
+            Response<String> response = Main.pastebin.post(paste);
+
+            if (response.hasError()) {
+                Util.sendMessage(e.getChannel(), "Error in pasting: " + response.getError());
+                return;
+            }
+
+            e.getMessage().delete().queue();
+
+            @SuppressWarnings("StringBufferReplaceableByString")
+            MessageEmbed embed = new EmbedBuilder()
+                .setDescription(new StringBuilder()
+                    .append(e.getAuthor().getAsMention())
+                    .append(" please dont post error logs in here! We recommend you use ")
+                    .append("[pastebin](https://pastebin.com) or something similar in the future.\n\n")
+                    .append("However, just this once, we did it for you: [")
+                    .append(response.get())
+                    .append("](")
+                    .append(response.get())
+                    .append(")")
+                    .toString())
+                .build();
+
+            e.getChannel().sendMessage(embed).queue();
+        }
     }
 
     private static void processIncorrectSlimefun(MessageReceivedEvent e) {
@@ -37,7 +82,7 @@ public final class Listener extends ListenerAdapter {
         while (matcher.find()) {
             Util.sendMessage(e.getChannel(), String.format(
                 "%s It's Slimefun, not \"%s\"",
-                e.getAuthor().getAsTag(),
+                e.getAuthor().getAsMention(),
                 matcher.group()
             ));
         }

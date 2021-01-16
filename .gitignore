@@ -5,3 +5,4 @@ build
 gradlew
 gradlew.bat
 src/main/resources/token.txt
+src/main/resources/pastebin.txt

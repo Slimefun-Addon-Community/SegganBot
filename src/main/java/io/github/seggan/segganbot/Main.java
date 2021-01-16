@@ -1,5 +1,7 @@
 package io.github.seggan.segganbot;
 
+import com.besaba.revonline.pastebinapi.Pastebin;
+import com.besaba.revonline.pastebinapi.impl.factory.PastebinFactory;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -16,6 +18,19 @@ import java.util.Map;
 
 public class Main {
     public static final Map<String, String> tags = new HashMap<>();
+    public static final PastebinFactory factory = new PastebinFactory();
+    public static final Pastebin pastebin = setupPastebin();
+
+    private static Pastebin setupPastebin() {
+        try {
+            return factory.createPastebin(getResourceAsString("pastebin.txt"));
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.exit(1);
+        }
+
+        return null;
+    }
 
     public static void main(String[] args) throws IOException, LoginException, InterruptedException {
         JDABuilder jdaBuilder = JDABuilder.createDefault(getResourceAsString("token.txt"));
