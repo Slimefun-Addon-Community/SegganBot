@@ -20,7 +20,7 @@ import java.util.regex.Pattern;
 
 public final class Listener extends ListenerAdapter {
     private static final Pattern INCORRECT_SLIMEFUN_PATTERN = Pattern.compile("[Ss]lime(?:F|( [Ff]))un");
-    private static final Pattern ERROR_PATTERN = Pattern.compile("(\\..+(Excepetion|Error): ')[\\s\\S]+(at .+(\\(.+\\.java:[1-9]+\\)))");
+    private static final Pattern ERROR_PATTERN = Pattern.compile("(\\..+(Exception|Error): ')[\\s\\S]+(at .+(\\(.+\\.java:[1-9]+\\)))");
 
     @Override
     public void onMessageReceived(@NotNull MessageReceivedEvent e) {
