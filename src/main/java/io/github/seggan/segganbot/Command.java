@@ -11,7 +11,7 @@ import java.util.regex.Pattern;
 
 @Data
 public final class Command {
-    private static final Pattern COMMAND_PATTERN = Pattern.compile("[!?]\\w+");
+    private static final Pattern COMMAND_PATTERN = Pattern.compile("^[!?]\\w+");
 
     private final String command;
     private final String[] arguments;
