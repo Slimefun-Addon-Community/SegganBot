@@ -2,9 +2,11 @@ package io.github.seggan.segganbot;
 
 import com.besaba.revonline.pastebinapi.Pastebin;
 import com.besaba.revonline.pastebinapi.impl.factory.PastebinFactory;
+import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.google.gson.reflect.TypeToken;
 import net.dv8tion.jda.api.JDABuilder;
 
 import javax.annotation.Nonnull;
@@ -15,6 +17,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.Map;
 
 public class Main {
@@ -37,25 +40,26 @@ public class Main {
         jdaBuilder.addEventListeners(new Listener());
         jdaBuilder.build().awaitReady();
 
-        String json;
         File file = new File("commands.json");
         if (!file.exists()) {
             throw new AssertionError("File commands.json does not exist!");
         }
 
-        try (FileInputStream fis = new FileInputStream(file)) {
-            byte[] data = new byte[(int) file.length()];
-            fis.read(data);
-            json = new String(data, StandardCharsets.UTF_8);
-        }
-
-        JsonObject jsonObject = JsonParser.parseString(json).getAsJsonObject();
+        JsonObject jsonObject = JsonParser.parseString(getFileAsString(file)).getAsJsonObject();
 
         for (Map.Entry<String, JsonElement> entry : jsonObject.entrySet()) {
             Listener.tags.put(entry.getKey(), entry.getValue().getAsString());
         }
 
         File warningFile = new File("warnings.json");
+        if (!warningFile.exists()) {
+            throw new AssertionError("File warnings.json does not exist!");
+        }
+
+        Gson gson = new Gson();
+
+        Listener.warnings = gson.fromJson(getFileAsString(warningFile), new TypeToken<List<Warning>>() {
+        }.getType());
     }
 
     @Nonnull
@@ -68,5 +72,13 @@ public class Main {
             result.write(buffer, 0, length);
         }
         return result.toString(StandardCharsets.UTF_8.name());
+    }
+
+    private static String getFileAsString(@Nonnull File file) throws IOException {
+        try (FileInputStream fis = new FileInputStream(file)) {
+            byte[] data = new byte[(int) file.length()];
+            fis.read(data);
+            return new String(data, StandardCharsets.UTF_8);
+        }
     }
 }

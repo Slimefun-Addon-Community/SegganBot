@@ -4,9 +4,13 @@ import com.besaba.revonline.pastebinapi.paste.Paste;
 import com.besaba.revonline.pastebinapi.paste.PasteExpire;
 import com.besaba.revonline.pastebinapi.paste.PasteVisiblity;
 import com.besaba.revonline.pastebinapi.response.Response;
+import com.google.gson.Gson;
 import io.github.seggan.segganbot.constants.Channels;
 import io.github.seggan.segganbot.constants.Patterns;
+import io.github.seggan.segganbot.constants.Roles;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageChannel;
 import net.dv8tion.jda.api.entities.MessageEmbed;
@@ -14,7 +18,19 @@ import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.jetbrains.annotations.NotNull;
 
+import java.awt.*;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.regex.Matcher;
@@ -22,7 +38,94 @@ import java.util.regex.Matcher;
 public final class Listener extends ListenerAdapter {
 
     public static final Map<String, String> tags = new HashMap<>();
+    public static List<Warning> warnings = new ArrayList<>();
     private static final Map<String, Function<Command, MessageEmbed>> commands = new HashMap<>();
+
+    static {
+        commands.put("!warn", command -> {
+            Guild guild = command.getMessage().getGuild();
+            Message message = command.getMessage();
+            if (!message.getMember().getRoles()
+                .contains(guild.getRoleById(Roles.ADDON_CREATORS.getId()))) {
+                return null;
+            }
+
+            String[] args = command.getArguments();
+
+            String reason = String.join(
+                " ",
+                Arrays.copyOfRange(args, 1, args.length)
+            );
+
+            Member member;
+            List<Member> members = message.getMentionedMembers();
+            if (members.size() > 0) {
+                member = members.get(0);
+            } else {
+                return null;
+            }
+
+            System.out.println(Instant.now());
+            System.out.println(reason);
+
+            Warning warning = new Warning(member.getIdLong(), Instant.now(), reason);
+
+            EmbedBuilder builder = new EmbedBuilder()
+                .setTitle("User Warned!")
+                .setDescription(String.format(
+                    "%s has been warned by %s for: `%s`",
+                    member.getAsMention(),
+                    message.getAuthor().getAsMention(),
+                    reason
+                ))
+                .setColor(Color.RED);
+
+            warnings.add(warning);
+            try (FileOutputStream stream = new FileOutputStream("warnings.json")) {
+                Gson gson = new Gson();
+                stream.write(gson.toJson(warnings).getBytes(StandardCharsets.UTF_8));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            return builder.build();
+        });
+        commands.put("!warnings", command -> {
+            Member member;
+            List<Member> members = command.getMessage().getMentionedMembers();
+            if (members.size() > 0) {
+                member = members.get(0);
+            } else {
+                return null;
+            }
+
+            List<Warning> memberWarnings = new ArrayList<>();
+
+            for (Warning warning : warnings) {
+                if (warning.getPlayerId() == member.getIdLong()) {
+                    memberWarnings.add(warning);
+                }
+            }
+
+            EmbedBuilder builder = new EmbedBuilder()
+                .setTitle(member.getEffectiveName() + "'s Warnings")
+                .setColor(Color.RED);
+
+
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss")
+                .withLocale(Locale.US)
+                .withZone(ZoneId.from(ZoneOffset.UTC));
+            for (Warning warning : memberWarnings) {
+                builder.addField(
+                    "Warning on " + formatter.format(warning.getTime()) + " UTC",
+                    warning.getReason(),
+                    false
+                );
+            }
+
+            return builder.build();
+        });
+    }
 
     @Override
     public void onMessageReceived(@NotNull MessageReceivedEvent e) {

@@ -4,5 +4,6 @@ gradle
 build
 gradlew
 gradlew.bat
+warnings.json
 src/main/resources/token.txt
 src/main/resources/pastebin.txt
