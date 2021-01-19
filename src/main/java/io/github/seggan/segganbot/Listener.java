@@ -32,31 +32,28 @@ public final class Listener extends ListenerAdapter {
 
         Command command = Command.parse(e);
         System.out.println(command);
-        if (command == null) {
-            return;
-        }
-
-        String result = tags.get(command.getCommand());
-        if (result == null) {
-            Function<Command, MessageEmbed> function = commands.get(command.getCommand());
-            if (function != null) {
-                MessageEmbed embed = function.apply(command);
-                if (embed != null) {
-                    e.getChannel().sendMessage(embed).queue();
+        if (command != null) {
+            String result = tags.get(command.getCommand());
+            if (result == null) {
+                Function<Command, MessageEmbed> function = commands.get(command.getCommand());
+                if (function != null) {
+                    MessageEmbed embed = function.apply(command);
+                    if (embed != null) {
+                        e.getChannel().sendMessage(embed).queue();
+                    }
+                }
+            } else {
+                if (result.contains("#")) {
+                    e.getChannel().sendMessage(Util.parseMessage(null, result).build()).queue();
+                } else {
+                    e.getChannel().sendMessage(result).queue();
                 }
             }
-            return;
-        }
-
-        if (result.contains("#")) {
-            e.getChannel().sendMessage(Util.parseMessage(null, result).build()).queue();
-        } else {
-            e.getChannel().sendMessage(result).queue();
         }
 
         processErrors(e);
         processIncorrectSlimefun(e);
-        processUpdateCommand(e);
+        processUpdates(e);
     }
 
     private static void processErrors(MessageReceivedEvent e) {
@@ -108,7 +105,7 @@ public final class Listener extends ListenerAdapter {
         }
     }
 
-    private static void processUpdateCommand(MessageReceivedEvent e) {
+    private static void processUpdates(MessageReceivedEvent e) {
         MessageChannel channel = e.getChannel();
         if (channel.getIdLong() != Channels.ADDON_ANNOUNCEMENTS.getId()) {
             return;
@@ -119,17 +116,5 @@ public final class Listener extends ListenerAdapter {
 
         EmbedBuilder embedObj = Util.parseMessage(null, message.getContentRaw());
         channel.sendMessage(embedObj.build()).queue();
-
-        /*String text = e.getMessage().getContentRaw();
-        TextChannel channel = e.getGuild().getTextChannelById(Channels.ADDON_ANNOUNCEMENTS.getId());
-        assert channel != null;
-        if (!text.startsWith("!update") ||
-            !e.getMember().getRoles().contains(e.getGuild().getRoleById(Roles.ADDON_CREATORS.getId()))) {
-            return;
-        }
-
-        EmbedBuilder embedObj = Util.parseMessage(null, Patterns.UPDATE_COMMAND_PATTERN.matcher(text).replaceAll(""));
-
-        channel.sendMessage(embedObj.build()).queue();*/
     }
 }
