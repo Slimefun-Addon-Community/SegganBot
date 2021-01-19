@@ -1,5 +1,6 @@
 package io.github.seggan.segganbot;
 
+import io.github.seggan.segganbot.constants.Patterns;
 import lombok.Data;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.TextChannel;
@@ -26,7 +27,7 @@ public final class Command {
             return null;
         }
 
-        String[] args = string.split(" ");
+        String[] args = Patterns.SPACE_PATTERN.split(string);
 
         return new Command(
             args[0],

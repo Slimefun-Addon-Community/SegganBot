@@ -11,14 +11,13 @@ import javax.annotation.Nonnull;
 import javax.security.auth.login.LoginException;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
 import java.util.Map;
 
 public class Main {
-    public static final Map<String, String> tags = new HashMap<>();
     public static final PastebinFactory factory = new PastebinFactory();
     public static final Pastebin pastebin = setupPastebin();
 
@@ -38,10 +37,22 @@ public class Main {
         jdaBuilder.addEventListeners(new Listener());
         jdaBuilder.build().awaitReady();
 
-        JsonObject jsonObject = JsonParser.parseString(getResourceAsString("tags.json")).getAsJsonObject();
+        String json;
+        File file = new File("commands.json");
+        if (!file.exists()) {
+            throw new AssertionError("File commands.json does not exist!");
+        }
+
+        try (FileInputStream fis = new FileInputStream(file)) {
+            byte[] data = new byte[(int) file.length()];
+            fis.read(data);
+            json = new String(data, StandardCharsets.UTF_8);
+        }
+
+        JsonObject jsonObject = JsonParser.parseString(json).getAsJsonObject();
 
         for (Map.Entry<String, JsonElement> entry : jsonObject.entrySet()) {
-            tags.put(entry.getKey(), entry.getValue().getAsString());
+            Listener.tags.put(entry.getKey(), entry.getValue().getAsString());
         }
 
         File warningFile = new File("warnings.json");

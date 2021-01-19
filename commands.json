@@ -1,0 +1,5 @@
+{
+  "!ping": "Pong!",
+  "!wiki": "You can check out the full wiki here: https://github.com/Slimefun/Slimefun4/wiki/",
+  "?infopls": "# We have received your message. Please proceed with the following steps:\n\n1. Run `/sf versions` and send us a screenshot. We need the exact versions you are using, otherwise we will not continue to help you. \"latest\" is not helping us at all. So please run that command. (If you don't have access to this command then Shift-Right-Click your Slimefun Guide, you can find your versions in the upper most middle slot.)\n\n2. Have you installed CS-CoreLib correctly? Are you using a version that supports your Minecraft Version?\n\n3. Check your console, are there any errors? (If so, then post them via https://pastebin.com/)\n\n**Follow the above steps thoroughly. Otherwise we cannot help you at all.**"
+}
