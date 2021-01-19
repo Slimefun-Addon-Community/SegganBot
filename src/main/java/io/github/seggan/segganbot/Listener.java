@@ -12,6 +12,7 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import io.github.seggan.segganbot.constants.Channels;
 import io.github.seggan.segganbot.constants.Patterns;
+import lombok.Getter;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageChannel;
@@ -28,19 +29,18 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 
+@Getter
 public final class Listener extends ListenerAdapter {
 
-    public final Map<String, String> tags = new HashMap<>();
-    public Set<Warning> warnings = new HashSet<>();
+    private final Map<String, String> tags = new HashMap<>();
+    private final Set<Warning> warnings = new HashSet<>();
     private final Map<String, Function<Command, MessageEmbed>> commands = new HashMap<>();
 
-    public static MongoCollection<Document> warningDb;
-    public final PastebinFactory factory = new PastebinFactory();
-    public final Pastebin pastebin = factory.createPastebin(Main.config.get("pastebin").getAsString());
+    private final MongoCollection<Document> warningDb;
+    private final PastebinFactory factory = new PastebinFactory();
+    private final Pastebin pastebin = factory.createPastebin(Main.config.get("pastebin").getAsString());
 
     public Listener() {
-        super();
-
         MongoClient mongoClient = MongoClients.create(
             "mongodb+srv://SegganBot:" + Main.config.get("mongo").getAsString() + "@cluster0.9lcjl.mongodb.net/<dbname>?retryWrites=true&w=majority");
         MongoDatabase database = mongoClient.getDatabase("segganbot");

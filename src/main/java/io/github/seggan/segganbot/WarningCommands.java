@@ -66,8 +66,8 @@ public class WarningCommands {
                 ))
                 .setColor(Color.RED);
 
-            listener.warnings.add(warning);
-            MongoUtil.addWarning(Listener.warningDb, warning);
+            listener.getWarnings().add(warning);
+            MongoUtil.addWarning(listener.getWarningDb(), warning);
 
             return builder.build();
         };
@@ -85,7 +85,7 @@ public class WarningCommands {
 
             List<Warning> memberWarnings = new ArrayList<>();
 
-            for (Warning warning : listener.warnings) {
+            for (Warning warning : listener.getWarnings()) {
                 if (warning.getPlayerId() == member.getIdLong()) {
                     memberWarnings.add(warning);
                 }

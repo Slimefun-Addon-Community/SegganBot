@@ -11,15 +11,8 @@ public class Main {
     public static final JsonObject config = JsonParser.parseString(Util.getFileAsString(new File("config.json"))).getAsJsonObject();
 
     public static void main(String[] args) throws LoginException, InterruptedException {
-
         JDABuilder jdaBuilder = JDABuilder.createDefault(config.get("discord").getAsString());
         jdaBuilder.addEventListeners(new Listener());
         jdaBuilder.build().awaitReady();
-
-        File file = new File("commands.json");
-        if (!file.exists()) {
-            throw new AssertionError("File commands.json does not exist!");
-        }
     }
-
 }
