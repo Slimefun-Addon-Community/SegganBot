@@ -14,14 +14,41 @@ import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
+import java.util.function.Function;
 import java.util.regex.Matcher;
 
 public final class Listener extends ListenerAdapter {
 
+    private static final Set<Function<Command, MessageEmbed>> commands = new HashSet<>();
+
+    static {
+        commands.add(command -> {
+            if (command.getCommand().equals("?infopls")) {
+                EmbedBuilder builder = new EmbedBuilder()
+                    .setTitle("We have received your message. Please proceed with the following steps:")
+                    .addField(EmbedBuilder.ZERO_WIDTH_SPACE,
+                        "1. Run `/sf versions` and send us a screenshot. We need the exact versions you are using, otherwise we will not continue to help you. \"latest\" is not helping us at all. So please run that command. (If you don't have access to this command then Shift-Right-Click your Slimefun Guide, you can find your versions in the upper most middle slot.)",
+                        false)
+                    .addField(EmbedBuilder.ZERO_WIDTH_SPACE,
+                        "2. Have you installed CS-CoreLib correctly? Are you using a version that supports your Minecraft Version?",
+                        false)
+                    .addField(EmbedBuilder.ZERO_WIDTH_SPACE,
+                        "3. Check your console, are there any errors? (If so, then post them via [https://pastebin.com/](https://pastebin.com/))",
+                        false)
+                    .addField(EmbedBuilder.ZERO_WIDTH_SPACE,
+                        "**Follow the above steps thoroughly. Otherwise we cannot help you at all.**",
+                        false);
+                return builder.build();
+            }
+            return null;
+        });
+    }
+
     @Override
     public void onMessageReceived(@NotNull MessageReceivedEvent e) {
-        // processWalshbot(e);
         if (e.getAuthor().isBot()) {
             return;
         }
@@ -29,6 +56,18 @@ public final class Listener extends ListenerAdapter {
         for (Map.Entry<String, String> entry : Main.tags.entrySet()) {
             if (e.getMessage().getContentRaw().startsWith(entry.getKey())) {
                 Util.sendMessage(e.getChannel(), entry.getValue());
+            }
+        }
+
+        Command command = Command.parse(e);
+        System.out.println(command);
+        if (command == null) {
+            return;
+        }
+        for (Function<Command, MessageEmbed> function : commands) {
+            MessageEmbed embed = function.apply(command);
+            if (embed != null) {
+                e.getChannel().sendMessage(embed).queue();
             }
         }
 
@@ -86,7 +125,7 @@ public final class Listener extends ListenerAdapter {
         }
     }
 
-    private void processUpdateCommand(MessageReceivedEvent e) {
+    private static void processUpdateCommand(MessageReceivedEvent e) {
         String text = e.getMessage().getContentRaw();
         TextChannel channel = e.getGuild().getTextChannelById(Channels.ADDON_ANNOUNCEMENTS.getId());
         assert channel != null;
