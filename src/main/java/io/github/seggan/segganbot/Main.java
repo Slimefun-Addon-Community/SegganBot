@@ -1,42 +1,18 @@
 package io.github.seggan.segganbot;
 
-import com.besaba.revonline.pastebinapi.Pastebin;
-import com.besaba.revonline.pastebinapi.impl.factory.PastebinFactory;
-import com.google.gson.Gson;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import com.google.gson.reflect.TypeToken;
 import net.dv8tion.jda.api.JDABuilder;
 
-import javax.annotation.Nonnull;
 import javax.security.auth.login.LoginException;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
-import java.util.List;
-import java.util.Map;
 
 public class Main {
-    public static final PastebinFactory factory = new PastebinFactory();
-    public static final Pastebin pastebin = setupPastebin();
+    public static final JsonObject config = JsonParser.parseString(Util.getFileAsString(new File("config.json"))).getAsJsonObject();
 
-    private static Pastebin setupPastebin() {
-        try {
-            return factory.createPastebin(getResourceAsString("pastebin.txt"));
-        } catch (IOException e) {
-            e.printStackTrace();
-            System.exit(1);
-        }
+    public static void main(String[] args) throws LoginException, InterruptedException {
 
-        return null;
-    }
-
-    public static void main(String[] args) throws IOException, LoginException, InterruptedException {
-        JDABuilder jdaBuilder = JDABuilder.createDefault(getResourceAsString("token.txt"));
+        JDABuilder jdaBuilder = JDABuilder.createDefault(config.get("discord").getAsString());
         jdaBuilder.addEventListeners(new Listener());
         jdaBuilder.build().awaitReady();
 
@@ -44,41 +20,6 @@ public class Main {
         if (!file.exists()) {
             throw new AssertionError("File commands.json does not exist!");
         }
-
-        JsonObject jsonObject = JsonParser.parseString(getFileAsString(file)).getAsJsonObject();
-
-        for (Map.Entry<String, JsonElement> entry : jsonObject.entrySet()) {
-            Listener.tags.put(entry.getKey(), entry.getValue().getAsString());
-        }
-
-        File warningFile = new File("warnings.json");
-        if (!warningFile.exists()) {
-            throw new AssertionError("File warnings.json does not exist!");
-        }
-
-        Gson gson = new Gson();
-
-        Listener.warnings = gson.fromJson(getFileAsString(warningFile), new TypeToken<List<Warning>>() {
-        }.getType());
     }
 
-    @Nonnull
-    private static String getResourceAsString(@Nonnull String resource) throws IOException {
-        InputStream stream = Main.class.getResourceAsStream("/" + resource);
-        ByteArrayOutputStream result = new ByteArrayOutputStream();
-        byte[] buffer = new byte[1024];
-        int length;
-        while ((length = stream.read(buffer)) != -1) {
-            result.write(buffer, 0, length);
-        }
-        return result.toString(StandardCharsets.UTF_8.name());
-    }
-
-    private static String getFileAsString(@Nonnull File file) throws IOException {
-        try (FileInputStream fis = new FileInputStream(file)) {
-            byte[] data = new byte[(int) file.length()];
-            fis.read(data);
-            return new String(data, StandardCharsets.UTF_8);
-        }
-    }
 }

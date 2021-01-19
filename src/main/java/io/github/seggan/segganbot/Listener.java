@@ -1,130 +1,66 @@
 package io.github.seggan.segganbot;
 
+import com.besaba.revonline.pastebinapi.Pastebin;
+import com.besaba.revonline.pastebinapi.impl.factory.PastebinFactory;
 import com.besaba.revonline.pastebinapi.paste.Paste;
 import com.besaba.revonline.pastebinapi.paste.PasteExpire;
 import com.besaba.revonline.pastebinapi.paste.PasteVisiblity;
 import com.besaba.revonline.pastebinapi.response.Response;
-import com.google.gson.Gson;
+import com.mongodb.client.MongoClient;
+import com.mongodb.client.MongoClients;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
 import io.github.seggan.segganbot.constants.Channels;
 import io.github.seggan.segganbot.constants.Patterns;
-import io.github.seggan.segganbot.constants.Roles;
 import net.dv8tion.jda.api.EmbedBuilder;
-import net.dv8tion.jda.api.entities.Guild;
-import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageChannel;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
+import org.bson.Document;
 import org.jetbrains.annotations.NotNull;
 
-import java.awt.*;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.time.Instant;
-import java.time.ZoneId;
-import java.time.ZoneOffset;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 
 public final class Listener extends ListenerAdapter {
 
-    public static final Map<String, String> tags = new HashMap<>();
-    public static List<Warning> warnings = new ArrayList<>();
-    private static final Map<String, Function<Command, MessageEmbed>> commands = new HashMap<>();
+    public final Map<String, String> tags = new HashMap<>();
+    public Set<Warning> warnings = new HashSet<>();
+    private final Map<String, Function<Command, MessageEmbed>> commands = new HashMap<>();
 
-    static {
-        commands.put("!warn", command -> {
-            Guild guild = command.getMessage().getGuild();
-            Message message = command.getMessage();
-            if (!message.getMember().getRoles()
-                .contains(guild.getRoleById(Roles.ADDON_CREATORS.getId()))) {
-                return null;
+    public static MongoCollection<Document> warningDb;
+    public final PastebinFactory factory = new PastebinFactory();
+    public final Pastebin pastebin = factory.createPastebin(Main.config.get("pastebin").getAsString());
+
+    public Listener() {
+        super();
+
+        MongoClient mongoClient = MongoClients.create(
+            "mongodb+srv://SegganBot:" + Main.config.get("mongo").getAsString() + "@cluster0.9lcjl.mongodb.net/<dbname>?retryWrites=true&w=majority");
+        MongoDatabase database = mongoClient.getDatabase("segganbot");
+
+        warningDb = database.getCollection("warnings");
+
+        for (Document document : warningDb.find()) {
+            warnings.add(MongoUtil.deserializeWarning(document));
+        }
+
+        commands.put("!warn", WarningCommands.warnCommand(this));
+        commands.put("!warnings", WarningCommands.warningsCommand(this));
+
+        for (Document document : database.getCollection("commands").find()) {
+            for (Map.Entry<String, Object> entry : document.entrySet()) {
+                if (entry.getKey().equals("_id")) continue;
+
+                tags.put(entry.getKey(), (String) entry.getValue());
             }
-
-            String[] args = command.getArguments();
-
-            String reason = String.join(
-                " ",
-                Arrays.copyOfRange(args, 1, args.length)
-            );
-
-            Member member;
-            List<Member> members = message.getMentionedMembers();
-            if (members.size() > 0) {
-                member = members.get(0);
-            } else {
-                return null;
-            }
-
-            System.out.println(Instant.now());
-            System.out.println(reason);
-
-            Warning warning = new Warning(member.getIdLong(), Instant.now(), reason);
-
-            EmbedBuilder builder = new EmbedBuilder()
-                .setTitle("User Warned!")
-                .setDescription(String.format(
-                    "%s has been warned by %s for: `%s`",
-                    member.getAsMention(),
-                    message.getAuthor().getAsMention(),
-                    reason
-                ))
-                .setColor(Color.RED);
-
-            warnings.add(warning);
-            try (FileOutputStream stream = new FileOutputStream("warnings.json")) {
-                Gson gson = new Gson();
-                stream.write(gson.toJson(warnings).getBytes(StandardCharsets.UTF_8));
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
-            return builder.build();
-        });
-        commands.put("!warnings", command -> {
-            Member member;
-            List<Member> members = command.getMessage().getMentionedMembers();
-            if (members.size() > 0) {
-                member = members.get(0);
-            } else {
-                return null;
-            }
-
-            List<Warning> memberWarnings = new ArrayList<>();
-
-            for (Warning warning : warnings) {
-                if (warning.getPlayerId() == member.getIdLong()) {
-                    memberWarnings.add(warning);
-                }
-            }
-
-            EmbedBuilder builder = new EmbedBuilder()
-                .setTitle(member.getEffectiveName() + "'s Warnings")
-                .setColor(Color.RED);
-
-
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss")
-                .withLocale(Locale.US)
-                .withZone(ZoneId.from(ZoneOffset.UTC));
-            for (Warning warning : memberWarnings) {
-                builder.addField(
-                    "Warning on " + formatter.format(warning.getTime()) + " UTC",
-                    warning.getReason(),
-                    false
-                );
-            }
-
-            return builder.build();
-        });
+        }
     }
 
     @Override
@@ -147,7 +83,7 @@ public final class Listener extends ListenerAdapter {
                 }
             } else {
                 if (result.contains("#")) {
-                    e.getChannel().sendMessage(Util.parseMessage(null, result).build()).queue();
+                    e.getChannel().sendMessage(Util.parseMessage(null, result.replace("\\n", "\n")).build()).queue();
                 } else {
                     e.getChannel().sendMessage(result).queue();
                 }
@@ -159,9 +95,9 @@ public final class Listener extends ListenerAdapter {
         processUpdates(e);
     }
 
-    private static void processErrors(MessageReceivedEvent e) {
+    private void processErrors(MessageReceivedEvent e) {
         if (Patterns.ERROR_PATTERN.matcher(e.getMessage().getContentRaw()).find()) {
-            Paste paste = Main.factory.createPaste()
+            Paste paste = factory.createPaste()
                 .setTitle("Message Contents")
                 .setRaw(e.getMessage().getContentRaw())
                 .setMachineFriendlyLanguage("text")
@@ -169,7 +105,7 @@ public final class Listener extends ListenerAdapter {
                 .setVisiblity(PasteVisiblity.Public)
                 .build();
 
-            Response<String> response = Main.pastebin.post(paste);
+            Response<String> response = pastebin.post(paste);
 
             if (response.hasError()) {
                 Util.sendMessage(e.getChannel(), "Error in pasting: " + response.getError());
@@ -196,7 +132,7 @@ public final class Listener extends ListenerAdapter {
         }
     }
 
-    private static void processIncorrectSlimefun(MessageReceivedEvent e) {
+    private void processIncorrectSlimefun(MessageReceivedEvent e) {
         String msg = e.getMessage().getContentRaw();
         Matcher matcher = Patterns.INCORRECT_SLIMEFUN_PATTERN.matcher(msg);
         while (matcher.find()) {
@@ -208,7 +144,7 @@ public final class Listener extends ListenerAdapter {
         }
     }
 
-    private static void processUpdates(MessageReceivedEvent e) {
+    private void processUpdates(MessageReceivedEvent e) {
         MessageChannel channel = e.getChannel();
         if (channel.getIdLong() != Channels.ADDON_ANNOUNCEMENTS.getId()) {
             return;
