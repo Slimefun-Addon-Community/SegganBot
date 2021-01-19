@@ -1,19 +1,16 @@
 package io.github.seggan.segganbot;
 
+import io.github.seggan.segganbot.constants.Patterns;
 import lombok.Data;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.MessageChannel;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.regex.Pattern;
 
 public final class Util {
     private Util() {
     }
-
-    private static final Pattern NEWLINE_PATTERN = Pattern.compile("\\n");
-    public static final Pattern QUOTE_PATTERN = Pattern.compile("(?<=\")(.|\\n)+(?=\")");
 
     @Data
     public static class Embed {
@@ -36,7 +33,7 @@ public final class Util {
         final StringBuilder sb = new StringBuilder();
         String fieldTitle = null;
 
-        final String[] lines = NEWLINE_PATTERN.split(msg);
+        final String[] lines = Patterns.NEWLINE_PATTERN.split(msg);
 
         for (String line : lines) {
             if (line.startsWith("# ")) {
