@@ -10,6 +10,7 @@ import net.dv8tion.jda.api.JDABuilder;
 import javax.annotation.Nonnull;
 import javax.security.auth.login.LoginException;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -42,6 +43,8 @@ public class Main {
         for (Map.Entry<String, JsonElement> entry : jsonObject.entrySet()) {
             tags.put(entry.getKey(), entry.getValue().getAsString());
         }
+
+        File warningFile = new File("warnings.json");
     }
 
     @Nonnull

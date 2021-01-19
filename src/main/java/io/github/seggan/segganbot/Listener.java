@@ -5,10 +5,10 @@ import com.besaba.revonline.pastebinapi.paste.PasteExpire;
 import com.besaba.revonline.pastebinapi.paste.PasteVisiblity;
 import com.besaba.revonline.pastebinapi.response.Response;
 import net.dv8tion.jda.api.EmbedBuilder;
-import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.MessageChannel;
 import net.dv8tion.jda.api.entities.MessageEmbed;
+import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
@@ -24,7 +24,7 @@ public final class Listener extends ListenerAdapter {
 
     @Override
     public void onMessageReceived(@NotNull MessageReceivedEvent e) {
-        processWalshbot(e);
+        // processWalshbot(e);
         if (e.getAuthor().isBot()) {
             return;
         }
@@ -37,6 +37,7 @@ public final class Listener extends ListenerAdapter {
 
         processErrors(e);
         processIncorrectSlimefun(e);
+        processUpdateCommand(e);
     }
 
     private static void processErrors(MessageReceivedEvent e) {
@@ -95,15 +96,28 @@ public final class Listener extends ListenerAdapter {
 
         MessageChannel channel = e.getChannel();
         User author = e.getAuthor();
-        Guild guild = e.getGuild();
 
-        Member member = guild.getMember(author);
-        if (member == null || !guild.getSelfMember().canInteract(member)) return;
+        Member member = e.getMember();
+        if (!e.getGuild().getSelfMember().canInteract(member)) return;
 
         if (member.getEffectiveName().toLowerCase().contains("walshbot")) {
             member.modifyNickname(author.getName()).queue();
             channel.deleteMessageById(e.getMessageId()).queue();
             Util.sendMessage(channel, "Hey, who let you in here?");
         }
+    }
+
+    private void processUpdateCommand(MessageReceivedEvent e) {
+        String text = e.getMessage().getContentRaw();
+        TextChannel channel = e.getGuild().getTextChannelById(800907598051541002L);
+        assert channel != null;
+        if (!(text.startsWith("!update") ||
+            e.getMember().getRoles().contains(e.getGuild().getRoleById(799303481433260082L)))) {
+            return;
+        }
+
+        EmbedBuilder embedObj = Util.parseMessage(null, text.replace("!update", ""));
+
+        channel.sendMessage(embedObj.build()).queue();
     }
 }
