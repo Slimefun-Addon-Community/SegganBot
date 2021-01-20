@@ -11,8 +11,7 @@ import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import io.github.seggan.segganbot.commands.Command;
-import io.github.seggan.segganbot.commands.WarningCommands;
-import io.github.seggan.segganbot.commands.Welcomes;
+import io.github.seggan.segganbot.commands.CommandActions;
 import io.github.seggan.segganbot.constants.Channels;
 import io.github.seggan.segganbot.constants.Patterns;
 import lombok.Getter;
@@ -26,6 +25,7 @@ import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.bson.Document;
 import org.jetbrains.annotations.NotNull;
 
+import java.awt.*;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -41,6 +41,7 @@ public final class Listener extends ListenerAdapter {
     private final Map<String, Function<Command, MessageEmbed>> commands = new HashMap<>();
 
     private final MongoCollection<Document> warningDb;
+    private final MongoCollection<Document> commandsDb;
     private final PastebinFactory factory = new PastebinFactory();
     private final Pastebin pastebin = factory.createPastebin(Main.config.get("pastebin").getAsString());
 
@@ -55,21 +56,24 @@ public final class Listener extends ListenerAdapter {
             warnings.add(MongoUtil.deserializeWarning(document));
         }
 
-        commands.put("!warn", WarningCommands.warnCommand(this));
-        commands.put("!warnings", WarningCommands.warningsCommand(this));
+        commands.put("!warn", CommandActions.warnCommand(this));
+        commands.put("!warnings", CommandActions.warningsCommand(this));
+        commands.put("!setcommand", CommandActions.setCommandCommand(this));
 
-        for (Document document : database.getCollection("commands").find()) {
-            for (Map.Entry<String, Object> entry : document.entrySet()) {
-                if (entry.getKey().equals("_id")) continue;
-
-                tags.put(entry.getKey(), (String) entry.getValue());
-            }
+        commandsDb = database.getCollection("commands");
+        for (Document document : commandsDb.find()) {
+            tags.put(document.getString("_id"), document.getString("message"));
         }
     }
 
     @Override
     public void onGuildMemberJoin(@NotNull GuildMemberJoinEvent e) {
-        Channels.WELCOMES.getChannel().sendMessage(Welcomes.onJoin().apply(e)).queue();
+        EmbedBuilder builder = new EmbedBuilder()
+            .setTitle("Welcome " + e.getUser().getAsTag() + "!")
+            .setThumbnail(e.getUser().getEffectiveAvatarUrl())
+            .setColor(Color.GREEN)
+            .setDescription("Welcome to the Slimefun Addon Community Server!\n\nIf you want help with a specific addon, go to its respective channel. Addon updates can be found in " + Channels.ADDON_ANNOUNCEMENTS.getChannel().getAsMention());
+        Channels.WELCOMES.getChannel().sendMessage(builder.build()).queue();
     }
 
     @Override
