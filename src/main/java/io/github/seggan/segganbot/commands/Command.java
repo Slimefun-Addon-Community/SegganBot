@@ -1,4 +1,4 @@
-package io.github.seggan.segganbot;
+package io.github.seggan.segganbot.commands;
 
 import io.github.seggan.segganbot.constants.Patterns;
 import lombok.Data;

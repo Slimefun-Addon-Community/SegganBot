@@ -10,6 +10,9 @@ import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
+import io.github.seggan.segganbot.commands.Command;
+import io.github.seggan.segganbot.commands.WarningCommands;
+import io.github.seggan.segganbot.commands.Welcomes;
 import io.github.seggan.segganbot.constants.Channels;
 import io.github.seggan.segganbot.constants.Patterns;
 import lombok.Getter;
@@ -17,6 +20,7 @@ import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageChannel;
 import net.dv8tion.jda.api.entities.MessageEmbed;
+import net.dv8tion.jda.api.events.guild.member.GuildMemberJoinEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.bson.Document;
@@ -61,6 +65,11 @@ public final class Listener extends ListenerAdapter {
                 tags.put(entry.getKey(), (String) entry.getValue());
             }
         }
+    }
+
+    @Override
+    public void onGuildMemberJoin(@NotNull GuildMemberJoinEvent e) {
+        Channels.WELCOMES.getChannel().sendMessage(Welcomes.onJoin(this).apply(e)).queue();
     }
 
     @Override

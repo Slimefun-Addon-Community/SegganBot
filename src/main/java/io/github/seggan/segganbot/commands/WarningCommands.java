@@ -1,5 +1,8 @@
-package io.github.seggan.segganbot;
+package io.github.seggan.segganbot.commands;
 
+import io.github.seggan.segganbot.Listener;
+import io.github.seggan.segganbot.MongoUtil;
+import io.github.seggan.segganbot.Warning;
 import io.github.seggan.segganbot.constants.Roles;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Guild;
