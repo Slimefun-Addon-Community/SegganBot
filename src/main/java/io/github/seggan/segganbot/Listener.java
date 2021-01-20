@@ -69,7 +69,7 @@ public final class Listener extends ListenerAdapter {
 
     @Override
     public void onGuildMemberJoin(@NotNull GuildMemberJoinEvent e) {
-        Channels.WELCOMES.getChannel().sendMessage(Welcomes.onJoin(this).apply(e)).queue();
+        Channels.WELCOMES.getChannel().sendMessage(Welcomes.onJoin().apply(e)).queue();
     }
 
     @Override

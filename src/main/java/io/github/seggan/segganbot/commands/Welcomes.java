@@ -1,6 +1,5 @@
 package io.github.seggan.segganbot.commands;
 
-import io.github.seggan.segganbot.Listener;
 import io.github.seggan.segganbot.constants.Channels;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.MessageEmbed;
@@ -13,7 +12,7 @@ public final class Welcomes {
     private Welcomes() {
     }
 
-    public static Function<GuildMemberJoinEvent, MessageEmbed> onJoin(Listener listener) {
+    public static Function<GuildMemberJoinEvent, MessageEmbed> onJoin() {
         return e -> {
             EmbedBuilder builder = new EmbedBuilder()
                 .setTitle("Welcome " + e.getUser().getAsTag() + "!")
