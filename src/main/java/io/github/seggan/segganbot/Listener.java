@@ -59,6 +59,9 @@ public final class Listener extends ListenerAdapter {
         commands.put("!warn", CommandActions.warnCommand(this));
         commands.put("!warnings", CommandActions.warningsCommand(this));
         commands.put("!setcommand", CommandActions.setCommandCommand(this));
+        commands.put("!ban", CommandActions.banCommand(this));
+        commands.put("?tags", CommandActions.tagsCommand(this));
+        commands.put("?help", CommandActions.tagsCommand(this));
 
         commandsDb = database.getCollection("commands");
         for (Document document : commandsDb.find()) {

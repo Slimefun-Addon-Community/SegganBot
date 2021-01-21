@@ -6,7 +6,8 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public enum Roles {
-    ADDON_CREATORS(799303481433260082L);
+    ADDON_CREATORS(799303481433260082L),
+    STAFF(801108958156685322L);
 
     private final long id;
 }

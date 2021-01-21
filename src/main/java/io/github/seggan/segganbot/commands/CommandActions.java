@@ -19,8 +19,10 @@ import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 
@@ -143,6 +145,67 @@ public class CommandActions {
             listener.getTags().put(args[0], embed);
 
             return Util.parseMessage(null, embed).build();
+        };
+    }
+
+    public static Function<Command, MessageEmbed> tagsCommand(Listener listener) {
+        return command -> {
+            Set<? extends String> set = new HashSet<>(listener.getCommands().keySet());
+            set.removeIf(s -> s.charAt(0) != '?');
+
+            EmbedBuilder builder = new EmbedBuilder()
+                .setTitle("\uD83C\uDFF7 Available tags:")
+                .setDescription("`" + String.join("`, `", listener.getTags().keySet()) + "`, `" +
+                    String.join("`, `", set) + "`");
+
+            return builder.build();
+        };
+    }
+
+    public static Function<Command, MessageEmbed> banCommand(Listener listener) {
+        return command -> {
+            Guild guild = command.getMessage().getGuild();
+            Message message = command.getMessage();
+            if (!message.getMember().getRoles()
+                .contains(guild.getRoleById(Roles.STAFF.getId()))) {
+                return null;
+            }
+
+            String[] args = command.getArguments();
+
+            int days;
+            try {
+                days = Integer.parseInt(args[1]);
+            } catch (NumberFormatException e) {
+                days = 0;
+            }
+
+            String reason = String.join(
+                " ",
+                Arrays.copyOfRange(args, 2, args.length)
+            );
+
+            Member member;
+            List<Member> members = message.getMentionedMembers();
+            if (members.size() > 0) {
+                member = members.get(0);
+            } else {
+                return null;
+            }
+
+            member.ban(days, reason).queue();
+
+            EmbedBuilder builder = new EmbedBuilder()
+                .setTitle("User Banned!")
+                .setDescription(String.format(
+                    "%s has been banned by %s for: `%s`\n\nThe user is now gone forever!",
+                    member.getAsMention(),
+                    message.getAuthor().getAsMention(),
+                    reason
+                ))
+                .setColor(Color.RED);
+
+            return builder.build();
         };
     }
 }
