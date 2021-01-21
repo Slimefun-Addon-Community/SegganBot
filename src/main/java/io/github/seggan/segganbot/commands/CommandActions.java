@@ -23,6 +23,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 
@@ -193,19 +194,22 @@ public class CommandActions {
                 return null;
             }
 
-            member.ban(days, reason).queue();
+            AtomicReference<MessageEmbed> embed = new AtomicReference<>();
 
-            EmbedBuilder builder = new EmbedBuilder()
-                .setTitle("User Banned!")
-                .setDescription(String.format(
-                    "%s has been banned by %s for: `%s`\n\nThe user is now gone forever!",
-                    member.getAsMention(),
-                    message.getAuthor().getAsMention(),
-                    reason
-                ))
-                .setColor(Color.RED);
+            member.ban(days, reason).queue(success -> {
+                EmbedBuilder builder = new EmbedBuilder()
+                    .setTitle("User Banned!")
+                    .setDescription(String.format(
+                        "%s has been banned by %s for: `%s`\n\nThe user is now gone forever!",
+                        member.getAsMention(),
+                        message.getAuthor().getAsMention(),
+                        reason
+                    ))
+                    .setColor(Color.RED);
+                embed.set(builder.build());
+            }, System.out::println);
 
-            return builder.build();
+            return embed.get();
         };
     }
 }
