@@ -1,7 +1,6 @@
 package io.github.seggan.segganbot;
 
 import io.github.seggan.segganbot.constants.Patterns;
-import lombok.Data;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.MessageChannel;
 
@@ -11,6 +10,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.concurrent.TimeUnit;
 
 public final class Util {
     private Util() {
@@ -25,13 +25,6 @@ public final class Util {
             e.printStackTrace();
             return null;
         }
-    }
-
-    @Data
-    public static class Embed {
-        private final String header;
-        private final String body;
-        private final String footer;
     }
 
     public static void sendMessage(MessageChannel channel, String message) {
@@ -77,5 +70,28 @@ public final class Util {
         }
 
         return builder;
+    }
+
+    public static long getMillisFromString(String s) {
+        TimeUnit unit;
+        char last = s.charAt(s.length() - 1);
+        switch (last) {
+            case 's':
+                unit = TimeUnit.SECONDS;
+                break;
+            case 'm':
+                unit = TimeUnit.MINUTES;
+                break;
+            case 'h':
+                unit = TimeUnit.HOURS;
+                break;
+            case 'd':
+                unit = TimeUnit.DAYS;
+                break;
+            default:
+                throw new IllegalArgumentException(String.format("Invalid unit: '%c", last));
+        }
+
+        return TimeUnit.MILLISECONDS.convert(Long.parseLong(s.replace(String.valueOf(last), "")), unit);
     }
 }

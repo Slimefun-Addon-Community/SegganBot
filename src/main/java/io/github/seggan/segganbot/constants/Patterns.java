@@ -7,4 +7,5 @@ public class Patterns {
     public static final Pattern ERROR_PATTERN = Pattern.compile("(\\..+(Exception|Error): ')[\\s\\S]+(at .+(\\(.+\\.java:[1-9]+\\)))");
     public static final Pattern SPACE_PATTERN = Pattern.compile(" ");
     public static final Pattern NEWLINE_PATTERN = Pattern.compile("\\n");
+    public static final Pattern TIME_PATTERN = Pattern.compile("\\d+[smhd]");
 }

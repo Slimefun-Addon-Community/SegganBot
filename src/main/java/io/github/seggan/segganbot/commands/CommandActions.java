@@ -23,6 +23,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import java.util.regex.Pattern;
@@ -37,15 +38,15 @@ public class CommandActions {
     }
 
     public static Function<Command, MessageEmbed> warnCommand(Listener listener) {
-        return command -> {
-            Guild guild = command.getMessage().getGuild();
-            Message message = command.getMessage();
+        return cmd -> {
+            Guild guild = cmd.getMessage().getGuild();
+            Message message = cmd.getMessage();
             if (!message.getMember().getRoles()
                 .contains(guild.getRoleById(Roles.ADDON_CREATORS.getId()))) {
                 return null;
             }
 
-            String[] args = command.getArguments();
+            String[] args = cmd.getArguments();
 
             String reason = String.join(
                 " ",
@@ -83,9 +84,9 @@ public class CommandActions {
     }
 
     public static Function<Command, MessageEmbed> warningsCommand(Listener listener) {
-        return command -> {
+        return cmd -> {
             Member member;
-            List<Member> members = command.getMessage().getMentionedMembers();
+            List<Member> members = cmd.getMessage().getMentionedMembers();
             if (members.size() > 0) {
                 member = members.get(0);
             } else {
@@ -117,17 +118,17 @@ public class CommandActions {
     }
 
     public static Function<Command, MessageEmbed> setCommandCommand(Listener listener) {
-        return command -> {
-            Message message = command.getMessage();
+        return cmd -> {
+            Message message = cmd.getMessage();
             Member member = message.getMember();
             if (!member.getRoles().contains(member.getGuild().getRoleById(Roles.ADDON_CREATORS.getId())) ||
-                command.getArguments().length < 2) {
+                cmd.getArguments().length < 2) {
                 return null;
             }
 
-            String[] args = command.getArguments();
+            String[] args = cmd.getArguments();
 
-            String embed = message.getContentRaw().replaceFirst(Pattern.quote(command.getCommand()), "")
+            String embed = message.getContentRaw().replaceFirst(Pattern.quote(cmd.getCommand()), "")
                 .replaceFirst(Pattern.quote(args[0]), "")
                 .trim();
 
@@ -150,7 +151,7 @@ public class CommandActions {
     }
 
     public static Function<Command, MessageEmbed> tagsCommand(Listener listener) {
-        return command -> {
+        return cmd -> {
             Set<? extends String> set = new HashSet<>(listener.getCommands().keySet());
             set.removeIf(s -> s.charAt(0) != '?');
 
@@ -163,16 +164,16 @@ public class CommandActions {
         };
     }
 
-    public static Function<Command, MessageEmbed> banCommand(Listener listener) {
-        return command -> {
-            Guild guild = command.getMessage().getGuild();
-            Message message = command.getMessage();
+    public static Function<Command, MessageEmbed> banCommand() {
+        return cmd -> {
+            Guild guild = cmd.getMessage().getGuild();
+            Message message = cmd.getMessage();
             if (!message.getMember().getRoles()
                 .contains(guild.getRoleById(Roles.STAFF.getId()))) {
                 return null;
             }
 
-            String[] args = command.getArguments();
+            String[] args = cmd.getArguments();
 
             int days;
             try {
@@ -210,6 +211,57 @@ public class CommandActions {
             }, System.out::println);
 
             return embed.get();
+        };
+    }
+
+    public static Function<Command, MessageEmbed> muteCommand() {
+        return cmd -> {
+            Guild guild = cmd.getMessage().getGuild();
+            Message message = cmd.getMessage();
+            if (!message.getMember().getRoles()
+                .contains(guild.getRoleById(Roles.ADDON_CREATORS.getId()))) {
+                return null;
+            }
+
+            String[] args = cmd.getArguments();
+
+            String reason = String.join(
+                " ",
+                Arrays.copyOfRange(args, 2, args.length)
+            );
+
+            Member member;
+            List<Member> members = message.getMentionedMembers();
+            if (!members.isEmpty()) {
+                member = members.get(0);
+            } else {
+                return null;
+            }
+
+            long time;
+            try {
+                time = Util.getMillisFromString(args[1]);
+            } catch (ArrayIndexOutOfBoundsException | IllegalArgumentException e) {
+                time = Long.MAX_VALUE;
+            }
+
+            guild.addRoleToMember(member, guild.getRoleById(Roles.MUTED.getId())).queue();
+
+            if (time != Long.MAX_VALUE) {
+                guild.removeRoleFromMember(member, guild.getRoleById(Roles.MUTED.getId()))
+                    .queueAfter(time, TimeUnit.MILLISECONDS);
+            }
+
+            EmbedBuilder builder = new EmbedBuilder()
+                .setTitle("User Muted!")
+                .setDescription(String.format(
+                    "%s has been muted by %s",
+                    member.getAsMention(),
+                    message.getAuthor().getAsMention()
+                ))
+                .setColor(Color.RED);
+
+            return builder.build();
         };
     }
 }

@@ -14,6 +14,7 @@ import io.github.seggan.segganbot.commands.Command;
 import io.github.seggan.segganbot.commands.CommandActions;
 import io.github.seggan.segganbot.constants.Channels;
 import io.github.seggan.segganbot.constants.Patterns;
+import io.github.seggan.segganbot.constants.Roles;
 import lombok.Getter;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Message;
@@ -59,7 +60,8 @@ public final class Listener extends ListenerAdapter {
         commands.put("!warn", CommandActions.warnCommand(this));
         commands.put("!warnings", CommandActions.warningsCommand(this));
         commands.put("!setcommand", CommandActions.setCommandCommand(this));
-        commands.put("!ban", CommandActions.banCommand(this));
+        commands.put("!ban", CommandActions.banCommand());
+        commands.put("!mute", CommandActions.muteCommand());
         commands.put("?tags", CommandActions.tagsCommand(this));
         commands.put("?help", CommandActions.tagsCommand(this));
 
@@ -82,6 +84,10 @@ public final class Listener extends ListenerAdapter {
     @Override
     public void onMessageReceived(@NotNull MessageReceivedEvent e) {
         if (e.getAuthor().isBot()) {
+            return;
+        }
+
+        if (processMutes(e)) {
             return;
         }
 
@@ -171,5 +177,14 @@ public final class Listener extends ListenerAdapter {
 
         EmbedBuilder embedObj = Util.parseMessage(null, message.getContentRaw());
         channel.sendMessage(embedObj.build()).queue();
+    }
+
+    private boolean processMutes(MessageReceivedEvent e) {
+        if (e.getMember().getRoles().contains(e.getGuild().getRoleById(Roles.MUTED.getId()))) {
+            e.getMessage().delete().queue();
+            return true;
+        }
+
+        return false;
     }
 }
