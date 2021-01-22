@@ -89,9 +89,24 @@ public final class Util {
                 unit = TimeUnit.DAYS;
                 break;
             default:
-                throw new IllegalArgumentException(String.format("Invalid unit: '%c", last));
+                throw new IllegalArgumentException(String.format("Invalid unit: '%c`", last));
         }
 
         return TimeUnit.MILLISECONDS.convert(Long.parseLong(s.replace(String.valueOf(last), "")), unit);
+    }
+
+    public static String getTimeUnitName(char c) {
+        switch (c) {
+            case 's':
+                return "seconds";
+            case 'm':
+                return "minutes";
+            case 'h':
+                return "hours";
+            case 'd':
+                return "days";
+            default:
+                throw new IllegalArgumentException(String.format("Invalid unit: '%c`", c));
+        }
     }
 }

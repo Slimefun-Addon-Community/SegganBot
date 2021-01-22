@@ -17,6 +17,7 @@ import io.github.seggan.segganbot.constants.Patterns;
 import io.github.seggan.segganbot.constants.Roles;
 import lombok.Getter;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageChannel;
 import net.dv8tion.jda.api.entities.MessageEmbed;
@@ -61,6 +62,7 @@ public final class Listener extends ListenerAdapter {
         commands.put("!warnings", CommandActions.warningsCommand(this));
         commands.put("!setcommand", CommandActions.setCommandCommand(this));
         commands.put("!ban", CommandActions.banCommand());
+        commands.put("!kick", CommandActions.kickCommand());
         commands.put("!mute", CommandActions.muteCommand());
         commands.put("?tags", CommandActions.tagsCommand(this));
         commands.put("?help", CommandActions.tagsCommand(this));
@@ -180,7 +182,10 @@ public final class Listener extends ListenerAdapter {
     }
 
     private boolean processMutes(MessageReceivedEvent e) {
-        if (e.getMember().getRoles().contains(e.getGuild().getRoleById(Roles.MUTED.getId()))) {
+        Member member = e.getMember();
+        if (member == null) return false;
+
+        if (member.getRoles().contains(e.getGuild().getRoleById(Roles.MUTED.getId()))) {
             e.getMessage().delete().queue();
             return true;
         }

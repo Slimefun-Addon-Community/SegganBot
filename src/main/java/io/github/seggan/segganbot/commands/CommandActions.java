@@ -24,13 +24,12 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 
 public class CommandActions {
 
-    private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss")
+    private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy/MM/dd hh:mm:ss z")
         .withLocale(Locale.US)
         .withZone(ZoneId.from(ZoneOffset.UTC));
 
@@ -42,7 +41,7 @@ public class CommandActions {
             Guild guild = cmd.getMessage().getGuild();
             Message message = cmd.getMessage();
             if (!message.getMember().getRoles()
-                .contains(guild.getRoleById(Roles.ADDON_CREATORS.getId()))) {
+                .contains(guild.getRoleById(Roles.STAFF.getId()))) {
                 return null;
             }
 
@@ -121,7 +120,7 @@ public class CommandActions {
         return cmd -> {
             Message message = cmd.getMessage();
             Member member = message.getMember();
-            if (!member.getRoles().contains(member.getGuild().getRoleById(Roles.ADDON_CREATORS.getId())) ||
+            if (!member.getRoles().contains(member.getGuild().getRoleById(Roles.STAFF.getId())) ||
                 cmd.getArguments().length < 2) {
                 return null;
             }
@@ -195,22 +194,59 @@ public class CommandActions {
                 return null;
             }
 
-            AtomicReference<MessageEmbed> embed = new AtomicReference<>();
+            EmbedBuilder builder = new EmbedBuilder()
+                .setTitle("User Banned!")
+                .setDescription(String.format(
+                    "%s has been banned by %s for: `%s`\n\nThe user is now gone forever!",
+                    member.getAsMention(),
+                    message.getAuthor().getAsMention(),
+                    reason
+                ))
+                .setColor(Color.RED);
 
-            member.ban(days, reason).queue(success -> {
-                EmbedBuilder builder = new EmbedBuilder()
-                    .setTitle("User Banned!")
-                    .setDescription(String.format(
-                        "%s has been banned by %s for: `%s`\n\nThe user is now gone forever!",
-                        member.getAsMention(),
-                        message.getAuthor().getAsMention(),
-                        reason
-                    ))
-                    .setColor(Color.RED);
-                embed.set(builder.build());
-            }, System.out::println);
+            member.ban(days, reason).queue();
 
-            return embed.get();
+            return builder.build();
+        };
+    }
+
+    public static Function<Command, MessageEmbed> kickCommand() {
+        return cmd -> {
+            Guild guild = cmd.getMessage().getGuild();
+            Message message = cmd.getMessage();
+            if (!message.getMember().getRoles()
+                .contains(guild.getRoleById(Roles.STAFF.getId()))) {
+                return null;
+            }
+
+            String[] args = cmd.getArguments();
+
+            String reason = String.join(
+                " ",
+                Arrays.copyOfRange(args, 2, args.length)
+            );
+
+            Member member;
+            List<Member> members = message.getMentionedMembers();
+            if (members.size() > 0) {
+                member = members.get(0);
+            } else {
+                return null;
+            }
+
+            EmbedBuilder builder = new EmbedBuilder()
+                .setTitle("User Kicked!")
+                .setDescription(String.format(
+                    "%s has been kicked by %s for: `%s`",
+                    member.getAsMention(),
+                    message.getAuthor().getAsMention(),
+                    reason
+                ))
+                .setColor(Color.RED);
+
+            member.kick(reason).queue();
+
+            return builder.build();
         };
     }
 
@@ -219,7 +255,7 @@ public class CommandActions {
             Guild guild = cmd.getMessage().getGuild();
             Message message = cmd.getMessage();
             if (!message.getMember().getRoles()
-                .contains(guild.getRoleById(Roles.ADDON_CREATORS.getId()))) {
+                .contains(guild.getRoleById(Roles.STAFF.getId()))) {
                 return null;
             }
 
@@ -255,9 +291,12 @@ public class CommandActions {
             EmbedBuilder builder = new EmbedBuilder()
                 .setTitle("User Muted!")
                 .setDescription(String.format(
-                    "%s has been muted by %s",
+                    "%s has been muted by %s. Reason: `%s`\n\nDuration: %s %s",
                     member.getAsMention(),
-                    message.getAuthor().getAsMention()
+                    message.getAuthor().getAsMention(),
+                    reason,
+                    args[1].substring(0, args[1].length() - 1),
+                    Util.getTimeUnitName(args[1].charAt(args[1].length() - 1))
                 ))
                 .setColor(Color.RED);
 
