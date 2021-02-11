@@ -79,7 +79,7 @@ public final class Listener extends ListenerAdapter {
             .setTitle("Welcome " + e.getUser().getAsTag() + "!")
             .setThumbnail(e.getUser().getEffectiveAvatarUrl())
             .setColor(Color.GREEN)
-            .setDescription("Welcome to the Slimefun Addon Community Server!\n\nIf you want help with a specific addon, go to its respective channel. Addon updates can be found in " + Channels.ADDON_ANNOUNCEMENTS.getChannel().getAsMention());
+            .setDescription("Welcome to the Slimefun Addon Community Server!\n\nIf you want help with a specific addon, go to its respective channel. Addon updates can be found in " + Channels.CHANGELOGS.getChannel().getAsMention());
         Channels.WELCOMES.getChannel().sendMessage(builder.build()).queue();
     }
 
@@ -170,7 +170,7 @@ public final class Listener extends ListenerAdapter {
 
     private void processUpdates(MessageReceivedEvent e) {
         MessageChannel channel = e.getChannel();
-        if (channel.getIdLong() != Channels.ADDON_ANNOUNCEMENTS.getId()) {
+        if (channel.getIdLong() != Channels.CHANGELOGS.getId()) {
             return;
         }
 

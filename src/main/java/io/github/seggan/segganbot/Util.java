@@ -58,6 +58,8 @@ public final class Util {
                 fieldTitle = line.substring(3);
             } else if (line.startsWith("### ")) {
                 builder.setFooter(line.substring(4));
+            } else if (line.startsWith("- ")) {
+                sb.append("\u2022").append(Patterns.DASH.matcher(line).replaceFirst("")).append("\n");
             } else {
                 sb.append(line).append("\n");
             }

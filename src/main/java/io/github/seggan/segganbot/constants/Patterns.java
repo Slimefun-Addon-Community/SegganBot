@@ -8,4 +8,5 @@ public class Patterns {
     public static final Pattern SPACE_PATTERN = Pattern.compile(" ");
     public static final Pattern NEWLINE_PATTERN = Pattern.compile("\\n");
     public static final Pattern TIME_PATTERN = Pattern.compile("\\d+[smhd]");
+    public static final Pattern DASH = Pattern.compile("-");
 }

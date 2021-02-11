@@ -6,8 +6,8 @@ import net.dv8tion.jda.api.entities.TextChannel;
 
 @Getter
 public enum Channels {
-    ADDON_ANNOUNCEMENTS(800907598051541002L),
-    WELCOMES(799294416626909186L);
+    CHANGELOGS(809186242746253363L),
+    WELCOMES(809183642651328563L);
 
     private final long id;
     private final TextChannel channel;
