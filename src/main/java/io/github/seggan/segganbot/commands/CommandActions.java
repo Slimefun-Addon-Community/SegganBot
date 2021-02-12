@@ -29,7 +29,7 @@ import java.util.regex.Pattern;
 
 public class CommandActions {
 
-    private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy/MM/dd hh:mm:ss z")
+    private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy/MM/dd hh:mm:ss")
         .withLocale(Locale.US)
         .withZone(ZoneId.from(ZoneOffset.UTC));
 

@@ -25,6 +25,7 @@ public class Main {
         jdaBuilder.setEnabledIntents(GatewayIntent.GUILD_MEMBERS, EnumSet.allOf(GatewayIntent.class).toArray(new GatewayIntent[0]));
         jda = jdaBuilder.build().awaitReady();
         // setPerms();
+        // setSlowMode();
     }
 
     private static void setPerms() {
@@ -38,6 +39,14 @@ public class Main {
                 Permission.MESSAGE_TTS,
                 Permission.MESSAGE_ATTACH_FILES
             )).queue();
+        }
+    }
+
+    private static void setSlowMode() {
+        for (TextChannel channel : jda.getTextChannels()) {
+            ChannelManager manager = channel.getManager();
+
+            manager.setSlowmode(5).queue();
         }
     }
 }
