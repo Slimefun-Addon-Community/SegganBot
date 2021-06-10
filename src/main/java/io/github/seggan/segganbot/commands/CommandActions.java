@@ -116,7 +116,7 @@ public class CommandActions {
         };
     }
 
-    public static Function<Command, MessageEmbed> setCommandCommand(Listener listener) {
+    public static Function<Command, MessageEmbed> setTagCommand(Listener listener) {
         return cmd -> {
             Message message = cmd.getMessage();
             Member member = message.getMember();

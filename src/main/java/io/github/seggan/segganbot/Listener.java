@@ -60,7 +60,7 @@ public final class Listener extends ListenerAdapter {
 
         commands.put("!warn", CommandActions.warnCommand(this));
         commands.put("!warnings", CommandActions.warningsCommand(this));
-        commands.put("!setcommand", CommandActions.setCommandCommand(this));
+        commands.put("!settag", CommandActions.setTagCommand(this));
         commands.put("!ban", CommandActions.banCommand());
         commands.put("!kick", CommandActions.kickCommand());
         commands.put("!mute", CommandActions.muteCommand());
