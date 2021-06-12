@@ -11,9 +11,9 @@ import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.managers.ChannelManager;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 
-import javax.security.auth.login.LoginException;
 import java.io.File;
 import java.util.EnumSet;
+import javax.security.auth.login.LoginException;
 
 public class Main {
     public static JDA jda = null;

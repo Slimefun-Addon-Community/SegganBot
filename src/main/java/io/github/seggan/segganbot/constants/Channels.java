@@ -1,8 +1,9 @@
 package io.github.seggan.segganbot.constants;
 
 import io.github.seggan.segganbot.Main;
-import lombok.Getter;
 import net.dv8tion.jda.api.entities.TextChannel;
+
+import lombok.Getter;
 
 @Getter
 public enum Channels {

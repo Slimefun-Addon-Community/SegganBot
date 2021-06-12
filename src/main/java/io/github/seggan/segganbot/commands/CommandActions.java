@@ -12,6 +12,8 @@ import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import org.bson.Document;
 
+import lombok.experimental.UtilityClass;
+
 import java.awt.*;
 import java.time.Instant;
 import java.time.ZoneId;
@@ -27,25 +29,23 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 
+@UtilityClass
 public class CommandActions {
 
     private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy/MM/dd hh:mm:ss")
         .withLocale(Locale.US)
         .withZone(ZoneId.from(ZoneOffset.UTC));
 
-    private CommandActions() {
-    }
-
     public static Function<Command, MessageEmbed> warnCommand(Listener listener) {
         return cmd -> {
-            Guild guild = cmd.getMessage().getGuild();
-            Message message = cmd.getMessage();
+            Guild guild = cmd.message().getGuild();
+            Message message = cmd.message();
             if (!message.getMember().getRoles()
                 .contains(guild.getRoleById(Roles.STAFF.getId()))) {
                 return null;
             }
 
-            String[] args = cmd.getArguments();
+            String[] args = cmd.arguments();
 
             String reason = String.join(
                 " ",
@@ -85,7 +85,7 @@ public class CommandActions {
     public static Function<Command, MessageEmbed> warningsCommand(Listener listener) {
         return cmd -> {
             Member member;
-            List<Member> members = cmd.getMessage().getMentionedMembers();
+            List<Member> members = cmd.message().getMentionedMembers();
             if (members.size() > 0) {
                 member = members.get(0);
             } else {
@@ -95,7 +95,7 @@ public class CommandActions {
             List<Warning> memberWarnings = new ArrayList<>();
 
             for (Warning warning : listener.getWarnings()) {
-                if (warning.getPlayerId() == member.getIdLong()) {
+                if (warning.playerId() == member.getIdLong()) {
                     memberWarnings.add(warning);
                 }
             }
@@ -106,8 +106,8 @@ public class CommandActions {
 
             for (Warning warning : memberWarnings) {
                 builder.addField(
-                    "Warning on " + formatter.format(warning.getTime()) + " UTC",
-                    warning.getReason(),
+                    "Warning on " + formatter.format(warning.time()) + " UTC",
+                    warning.reason(),
                     false
                 );
             }
@@ -118,16 +118,16 @@ public class CommandActions {
 
     public static Function<Command, MessageEmbed> setTagCommand(Listener listener) {
         return cmd -> {
-            Message message = cmd.getMessage();
+            Message message = cmd.message();
             Member member = message.getMember();
             if (!member.getRoles().contains(member.getGuild().getRoleById(Roles.STAFF.getId())) ||
-                cmd.getArguments().length < 2) {
+                cmd.arguments().length < 2) {
                 return null;
             }
 
-            String[] args = cmd.getArguments();
+            String[] args = cmd.arguments();
 
-            String embed = message.getContentRaw().replaceFirst(Pattern.quote(cmd.getCommand()), "")
+            String embed = message.getContentRaw().replaceFirst(Pattern.quote(cmd.command()), "")
                 .replaceFirst(Pattern.quote(args[0]), "")
                 .trim();
 
@@ -165,14 +165,14 @@ public class CommandActions {
 
     public static Function<Command, MessageEmbed> banCommand() {
         return cmd -> {
-            Guild guild = cmd.getMessage().getGuild();
-            Message message = cmd.getMessage();
+            Guild guild = cmd.message().getGuild();
+            Message message = cmd.message();
             if (!message.getMember().getRoles()
                 .contains(guild.getRoleById(Roles.STAFF.getId()))) {
                 return null;
             }
 
-            String[] args = cmd.getArguments();
+            String[] args = cmd.arguments();
 
             int days;
             try {
@@ -212,14 +212,14 @@ public class CommandActions {
 
     public static Function<Command, MessageEmbed> kickCommand() {
         return cmd -> {
-            Guild guild = cmd.getMessage().getGuild();
-            Message message = cmd.getMessage();
+            Guild guild = cmd.message().getGuild();
+            Message message = cmd.message();
             if (!message.getMember().getRoles()
                 .contains(guild.getRoleById(Roles.STAFF.getId()))) {
                 return null;
             }
 
-            String[] args = cmd.getArguments();
+            String[] args = cmd.arguments();
 
             String reason = String.join(
                 " ",
@@ -252,14 +252,14 @@ public class CommandActions {
 
     public static Function<Command, MessageEmbed> muteCommand() {
         return cmd -> {
-            Guild guild = cmd.getMessage().getGuild();
-            Message message = cmd.getMessage();
+            Guild guild = cmd.message().getGuild();
+            Message message = cmd.message();
             if (!message.getMember().getRoles()
                 .contains(guild.getRoleById(Roles.STAFF.getId()))) {
                 return null;
             }
 
-            String[] args = cmd.getArguments();
+            String[] args = cmd.arguments();
 
             String reason = String.join(
                 " ",

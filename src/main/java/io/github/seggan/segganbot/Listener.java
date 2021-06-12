@@ -15,7 +15,6 @@ import io.github.seggan.segganbot.commands.CommandActions;
 import io.github.seggan.segganbot.constants.Channels;
 import io.github.seggan.segganbot.constants.Patterns;
 import io.github.seggan.segganbot.constants.Roles;
-import lombok.Getter;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
@@ -26,6 +25,8 @@ import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.bson.Document;
 import org.jetbrains.annotations.NotNull;
+
+import lombok.Getter;
 
 import java.awt.*;
 import java.util.HashMap;
@@ -96,9 +97,9 @@ public final class Listener extends ListenerAdapter {
         Command command = Command.parse(e);
         System.out.println(command);
         if (command != null) {
-            String result = tags.get(command.getCommand());
+            String result = tags.get(command.command());
             if (result == null) {
-                Function<Command, MessageEmbed> function = commands.get(command.getCommand());
+                Function<Command, MessageEmbed> function = commands.get(command.command());
                 if (function != null) {
                     MessageEmbed embed = function.apply(command);
                     if (embed != null) {

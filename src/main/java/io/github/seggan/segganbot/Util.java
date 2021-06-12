@@ -4,17 +4,19 @@ import io.github.seggan.segganbot.constants.Patterns;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.MessageChannel;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import lombok.experimental.UtilityClass;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.TimeUnit;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
+@UtilityClass
 public final class Util {
-    private Util() {
-    }
 
     public static String getFileAsString(@Nonnull File file) {
         try (FileInputStream fis = new FileInputStream(file)) {
@@ -22,8 +24,7 @@ public final class Util {
             fis.read(data);
             return new String(data, StandardCharsets.UTF_8);
         } catch (IOException e) {
-            e.printStackTrace();
-            return null;
+            throw new UncheckedIOException(e);
         }
     }
 
@@ -77,38 +78,24 @@ public final class Util {
     public static long getMillisFromString(String s) {
         TimeUnit unit;
         char last = s.charAt(s.length() - 1);
-        switch (last) {
-            case 's':
-                unit = TimeUnit.SECONDS;
-                break;
-            case 'm':
-                unit = TimeUnit.MINUTES;
-                break;
-            case 'h':
-                unit = TimeUnit.HOURS;
-                break;
-            case 'd':
-                unit = TimeUnit.DAYS;
-                break;
-            default:
-                throw new IllegalArgumentException(String.format("Invalid unit: '%c`", last));
-        }
+        unit = switch (last) {
+            case 's' -> TimeUnit.SECONDS;
+            case 'm' -> TimeUnit.MINUTES;
+            case 'h' -> TimeUnit.HOURS;
+            case 'd' -> TimeUnit.DAYS;
+            default -> throw new IllegalArgumentException(String.format("Invalid unit: '%c`", last));
+        };
 
         return TimeUnit.MILLISECONDS.convert(Long.parseLong(s.replace(String.valueOf(last), "")), unit);
     }
 
     public static String getTimeUnitName(char c) {
-        switch (c) {
-            case 's':
-                return "seconds";
-            case 'm':
-                return "minutes";
-            case 'h':
-                return "hours";
-            case 'd':
-                return "days";
-            default:
-                throw new IllegalArgumentException(String.format("Invalid unit: '%c`", c));
-        }
+        return switch (c) {
+            case 's' -> "seconds";
+            case 'm' -> "minutes";
+            case 'h' -> "hours";
+            case 'd' -> "days";
+            default -> throw new IllegalArgumentException(String.format("Invalid unit: '%c`", c));
+        };
     }
 }

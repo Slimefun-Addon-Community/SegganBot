@@ -9,9 +9,9 @@ public final class MongoUtil {
 
     public static void addWarning(MongoCollection<Document> collection, Warning warning) {
         Document document = new Document();
-        document.append("player", warning.getPlayerId());
-        document.append("time", warning.getTime());
-        document.append("reason", warning.getReason());
+        document.append("player", warning.playerId());
+        document.append("time", warning.time());
+        document.append("reason", warning.reason());
 
         collection.insertOne(document);
     }

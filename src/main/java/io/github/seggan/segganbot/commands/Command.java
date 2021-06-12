@@ -1,23 +1,16 @@
 package io.github.seggan.segganbot.commands;
 
 import io.github.seggan.segganbot.constants.Patterns;
-import lombok.Data;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 
-import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.regex.Pattern;
+import javax.annotation.Nullable;
 
-@Data
-public final class Command {
+public record Command(String command, String[] arguments, TextChannel channel, Message message) {
     private static final Pattern COMMAND_PATTERN = Pattern.compile("^[!?]\\w+");
-
-    private final String command;
-    private final String[] arguments;
-    private final TextChannel channel;
-    private final Message message;
 
     @Nullable
     public static Command parse(MessageReceivedEvent e) {
