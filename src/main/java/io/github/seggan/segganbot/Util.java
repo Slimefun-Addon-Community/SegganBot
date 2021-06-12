@@ -3,6 +3,8 @@ package io.github.seggan.segganbot;
 import io.github.seggan.segganbot.constants.Patterns;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.MessageChannel;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import lombok.experimental.UtilityClass;
 
@@ -12,13 +14,11 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.TimeUnit;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 
 @UtilityClass
 public final class Util {
 
-    public static String getFileAsString(@Nonnull File file) {
+    public static String getFileAsString(@NotNull File file) {
         try (FileInputStream fis = new FileInputStream(file)) {
             byte[] data = new byte[(int) file.length()];
             fis.read(data);
@@ -32,7 +32,7 @@ public final class Util {
         channel.sendMessage(message).queue();
     }
 
-    public static EmbedBuilder parseMessage(@Nullable String title, @Nonnull String msg) {
+    public static EmbedBuilder parseMessage(@Nullable String title, @NotNull String msg) {
         final EmbedBuilder builder = new EmbedBuilder();
 
         if (msg.indexOf('#') == -1) {
@@ -42,7 +42,7 @@ public final class Util {
         final StringBuilder sb = new StringBuilder();
         String fieldTitle = null;
 
-        final String[] lines = Patterns.NEWLINE_PATTERN.split(msg);
+        final String[] lines = Patterns.NEWLINE.split(msg);
 
         for (String line : lines) {
             if (line.startsWith("# ")) {

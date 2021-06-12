@@ -10,7 +10,8 @@ import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
-import io.github.seggan.segganbot.commands.Command;
+import io.github.seggan.segganbot.commands.AbstractAdminCommand;
+import io.github.seggan.segganbot.commands.AdminCommand;
 import io.github.seggan.segganbot.commands.CommandActions;
 import io.github.seggan.segganbot.constants.Channels;
 import io.github.seggan.segganbot.constants.Patterns;
@@ -41,7 +42,8 @@ public final class Listener extends ListenerAdapter {
 
     private final Map<String, String> tags = new HashMap<>();
     private final Set<Warning> warnings = new HashSet<>();
-    private final Map<String, Function<Command, MessageEmbed>> commands = new HashMap<>();
+    private final Map<String, Function<AdminCommand, MessageEmbed>> commands = new HashMap<>();
+    public static final Set<AbstractAdminCommand> adminCommands = new HashSet<>();
 
     private final MongoCollection<Document> warningDb;
     private final MongoCollection<Document> commandsDb;
@@ -64,7 +66,6 @@ public final class Listener extends ListenerAdapter {
         commands.put("!settag", CommandActions.setTagCommand(this));
         commands.put("!ban", CommandActions.banCommand());
         commands.put("!kick", CommandActions.kickCommand());
-        commands.put("!mute", CommandActions.muteCommand());
         commands.put("?tags", CommandActions.tagsCommand(this));
         commands.put("?help", CommandActions.tagsCommand(this));
 
@@ -94,12 +95,19 @@ public final class Listener extends ListenerAdapter {
             return;
         }
 
-        Command command = Command.parse(e);
+        AdminCommand command = AdminCommand.parse(e);
         System.out.println(command);
+        bigIf:
         if (command != null) {
+            for (AbstractAdminCommand adminCommand : adminCommands) {
+                if (adminCommand.getName().equals(command.command().replace("!", ""))) {
+                    adminCommand.startExecuting(e.getMessage());
+                    break bigIf;
+                }
+            }
             String result = tags.get(command.command());
             if (result == null) {
-                Function<Command, MessageEmbed> function = commands.get(command.command());
+                Function<AdminCommand, MessageEmbed> function = commands.get(command.command());
                 if (function != null) {
                     MessageEmbed embed = function.apply(command);
                     if (embed != null) {

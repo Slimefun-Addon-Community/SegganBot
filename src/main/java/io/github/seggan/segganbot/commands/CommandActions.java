@@ -36,7 +36,7 @@ public class CommandActions {
         .withLocale(Locale.US)
         .withZone(ZoneId.from(ZoneOffset.UTC));
 
-    public static Function<Command, MessageEmbed> warnCommand(Listener listener) {
+    public static Function<AdminCommand, MessageEmbed> warnCommand(Listener listener) {
         return cmd -> {
             Guild guild = cmd.message().getGuild();
             Message message = cmd.message();
@@ -82,7 +82,7 @@ public class CommandActions {
         };
     }
 
-    public static Function<Command, MessageEmbed> warningsCommand(Listener listener) {
+    public static Function<AdminCommand, MessageEmbed> warningsCommand(Listener listener) {
         return cmd -> {
             Member member;
             List<Member> members = cmd.message().getMentionedMembers();
@@ -116,7 +116,7 @@ public class CommandActions {
         };
     }
 
-    public static Function<Command, MessageEmbed> setTagCommand(Listener listener) {
+    public static Function<AdminCommand, MessageEmbed> setTagCommand(Listener listener) {
         return cmd -> {
             Message message = cmd.message();
             Member member = message.getMember();
@@ -149,7 +149,7 @@ public class CommandActions {
         };
     }
 
-    public static Function<Command, MessageEmbed> tagsCommand(Listener listener) {
+    public static Function<AdminCommand, MessageEmbed> tagsCommand(Listener listener) {
         return cmd -> {
             Set<? extends String> set = new HashSet<>(listener.getCommands().keySet());
             set.removeIf(s -> s.charAt(0) != '?');
@@ -163,7 +163,7 @@ public class CommandActions {
         };
     }
 
-    public static Function<Command, MessageEmbed> banCommand() {
+    public static Function<AdminCommand, MessageEmbed> banCommand() {
         return cmd -> {
             Guild guild = cmd.message().getGuild();
             Message message = cmd.message();
@@ -210,7 +210,7 @@ public class CommandActions {
         };
     }
 
-    public static Function<Command, MessageEmbed> kickCommand() {
+    public static Function<AdminCommand, MessageEmbed> kickCommand() {
         return cmd -> {
             Guild guild = cmd.message().getGuild();
             Message message = cmd.message();
@@ -250,7 +250,7 @@ public class CommandActions {
         };
     }
 
-    public static Function<Command, MessageEmbed> muteCommand() {
+    public static Function<AdminCommand, MessageEmbed> muteCommand() {
         return cmd -> {
             Guild guild = cmd.message().getGuild();
             Message message = cmd.message();

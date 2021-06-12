@@ -3,9 +3,10 @@ package io.github.seggan.segganbot;
 import com.mongodb.client.MongoCollection;
 import org.bson.Document;
 
+import lombok.experimental.UtilityClass;
+
+@UtilityClass
 public final class MongoUtil {
-    private MongoUtil() {
-    }
 
     public static void addWarning(MongoCollection<Document> collection, Warning warning) {
         Document document = new Document();

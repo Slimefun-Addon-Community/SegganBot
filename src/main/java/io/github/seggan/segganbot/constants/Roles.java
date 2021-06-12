@@ -1,5 +1,8 @@
 package io.github.seggan.segganbot.constants;
 
+import io.github.seggan.segganbot.Main;
+import net.dv8tion.jda.api.entities.Role;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -11,4 +14,8 @@ public enum Roles {
     STAFF(809182558796906507L);
 
     private final long id;
+
+    public Role getRole() {
+        return Main.jda.getRoleById(id);
+    }
 }

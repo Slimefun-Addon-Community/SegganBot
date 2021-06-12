@@ -2,6 +2,8 @@ package io.github.seggan.segganbot;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import io.github.seggan.segganbot.commands.impls.MuteCommand;
+import io.github.seggan.segganbot.commands.impls.PingCommand;
 import io.github.seggan.segganbot.constants.Roles;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
@@ -21,11 +23,17 @@ public class Main {
 
     public static void main(String[] args) throws LoginException, InterruptedException {
         JDABuilder jdaBuilder = JDABuilder.createDefault(config.get("discord").getAsString());
+        setupCommands();
         jdaBuilder.addEventListeners(new Listener());
         jdaBuilder.setEnabledIntents(GatewayIntent.GUILD_MEMBERS, EnumSet.allOf(GatewayIntent.class).toArray(new GatewayIntent[0]));
         jda = jdaBuilder.build().awaitReady();
         // setPerms();
         // setSlowMode();
+    }
+
+    private static void setupCommands() {
+        new PingCommand();
+        new MuteCommand();
     }
 
     private static void setPerms() {
