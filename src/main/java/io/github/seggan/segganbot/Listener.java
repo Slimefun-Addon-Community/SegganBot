@@ -6,10 +6,6 @@ import com.besaba.revonline.pastebinapi.paste.Paste;
 import com.besaba.revonline.pastebinapi.paste.PasteExpire;
 import com.besaba.revonline.pastebinapi.paste.PasteVisiblity;
 import com.besaba.revonline.pastebinapi.response.Response;
-import com.mongodb.client.MongoClient;
-import com.mongodb.client.MongoClients;
-import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoDatabase;
 import io.github.seggan.segganbot.commands.AbstractAdminCommand;
 import io.github.seggan.segganbot.commands.AdminCommand;
 import io.github.seggan.segganbot.commands.CommandActions;
@@ -24,7 +20,6 @@ import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberJoinEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
-import org.bson.Document;
 import org.jetbrains.annotations.NotNull;
 
 import lombok.Getter;
@@ -40,39 +35,18 @@ import java.util.regex.Matcher;
 @Getter
 public final class Listener extends ListenerAdapter {
 
-    private final Map<String, String> tags = new HashMap<>();
-    private final Set<Warning> warnings = new HashSet<>();
+
     private final Map<String, Function<AdminCommand, MessageEmbed>> commands = new HashMap<>();
     public static final Set<AbstractAdminCommand> adminCommands = new HashSet<>();
 
-    private final MongoCollection<Document> warningDb;
-    private final MongoCollection<Document> commandsDb;
+
     private final PastebinFactory factory = new PastebinFactory();
     private final Pastebin pastebin = factory.createPastebin(Main.config.get("pastebin").getAsString());
 
     public Listener() {
-        MongoClient mongoClient = MongoClients.create(
-            "mongodb+srv://SegganBot:" + Main.config.get("mongo").getAsString() + "@cluster0.9lcjl.mongodb.net/<dbname>?retryWrites=true&w=majority");
-        MongoDatabase database = mongoClient.getDatabase("segganbot");
-
-        warningDb = database.getCollection("warnings");
-
-        for (Document document : warningDb.find()) {
-            warnings.add(MongoUtil.deserializeWarning(document));
-        }
-
-        commands.put("!warn", CommandActions.warnCommand(this));
-        commands.put("!warnings", CommandActions.warningsCommand(this));
-        commands.put("!settag", CommandActions.setTagCommand(this));
-        commands.put("!ban", CommandActions.banCommand());
-        commands.put("!kick", CommandActions.kickCommand());
+        commands.put("!warnings", CommandActions.warningsCommand());
         commands.put("?tags", CommandActions.tagsCommand(this));
         commands.put("?help", CommandActions.tagsCommand(this));
-
-        commandsDb = database.getCollection("commands");
-        for (Document document : commandsDb.find()) {
-            tags.put(document.getString("_id"), document.getString("message"));
-        }
     }
 
     @Override
@@ -105,7 +79,7 @@ public final class Listener extends ListenerAdapter {
                     break bigIf;
                 }
             }
-            String result = tags.get(command.command());
+            String result = Main.tags.get(command.command());
             if (result == null) {
                 Function<AdminCommand, MessageEmbed> function = commands.get(command.command());
                 if (function != null) {

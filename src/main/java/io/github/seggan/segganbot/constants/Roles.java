@@ -11,6 +11,7 @@ import lombok.Getter;
 public enum Roles {
     ADDON_CREATORS(809182521316343818L),
     MUTED(809220467717177356L),
+    ADMIN(809219516411805747L),
     STAFF(809182558796906507L);
 
     private final long id;

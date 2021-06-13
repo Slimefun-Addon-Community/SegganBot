@@ -1,8 +1,12 @@
 package io.github.seggan.segganbot;
 
 import io.github.seggan.segganbot.constants.Patterns;
+import io.github.seggan.segganbot.constants.Roles;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.MessageChannel;
+import net.dv8tion.jda.api.entities.Role;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -13,6 +17,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 @UtilityClass
@@ -26,6 +31,13 @@ public final class Util {
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
+    }
+
+    public static boolean isAdmin(@NotNull Member member) {
+        List<Role> roles = member.getRoles();
+        return (member.getIdLong() == 516651203661266958L || member.getIdLong() == 312246160133980163L) ||
+            member.hasPermission(Permission.ADMINISTRATOR) ||
+            (roles.contains(Roles.ADMIN.getRole()) || roles.contains(Roles.STAFF.getRole()));
     }
 
     public static void sendMessage(MessageChannel channel, String message) {

@@ -1,33 +1,24 @@
 package io.github.seggan.segganbot.commands;
 
 import io.github.seggan.segganbot.Listener;
-import io.github.seggan.segganbot.MongoUtil;
-import io.github.seggan.segganbot.Util;
+import io.github.seggan.segganbot.Main;
 import io.github.seggan.segganbot.Warning;
-import io.github.seggan.segganbot.constants.Roles;
 import net.dv8tion.jda.api.EmbedBuilder;
-import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
-import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageEmbed;
-import org.bson.Document;
 
 import lombok.experimental.UtilityClass;
 
 import java.awt.*;
-import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
-import java.util.regex.Pattern;
 
 @UtilityClass
 public class CommandActions {
@@ -36,53 +27,7 @@ public class CommandActions {
         .withLocale(Locale.US)
         .withZone(ZoneId.from(ZoneOffset.UTC));
 
-    public static Function<AdminCommand, MessageEmbed> warnCommand(Listener listener) {
-        return cmd -> {
-            Guild guild = cmd.message().getGuild();
-            Message message = cmd.message();
-            if (!message.getMember().getRoles()
-                .contains(guild.getRoleById(Roles.STAFF.getId()))) {
-                return null;
-            }
-
-            String[] args = cmd.arguments();
-
-            String reason = String.join(
-                " ",
-                Arrays.copyOfRange(args, 1, args.length)
-            );
-
-            Member member;
-            List<Member> members = message.getMentionedMembers();
-            if (members.size() > 0) {
-                member = members.get(0);
-            } else {
-                return null;
-            }
-
-            System.out.println(Instant.now());
-            System.out.println(reason);
-
-            Warning warning = new Warning(member.getIdLong(), Instant.now(), reason);
-
-            EmbedBuilder builder = new EmbedBuilder()
-                .setTitle("User Warned!")
-                .setDescription(String.format(
-                    "%s has been warned by %s for: `%s`",
-                    member.getAsMention(),
-                    message.getAuthor().getAsMention(),
-                    reason
-                ))
-                .setColor(Color.RED);
-
-            listener.getWarnings().add(warning);
-            MongoUtil.addWarning(listener.getWarningDb(), warning);
-
-            return builder.build();
-        };
-    }
-
-    public static Function<AdminCommand, MessageEmbed> warningsCommand(Listener listener) {
+    public static Function<AdminCommand, MessageEmbed> warningsCommand() {
         return cmd -> {
             Member member;
             List<Member> members = cmd.message().getMentionedMembers();
@@ -94,7 +39,7 @@ public class CommandActions {
 
             List<Warning> memberWarnings = new ArrayList<>();
 
-            for (Warning warning : listener.getWarnings()) {
+            for (Warning warning : Main.warnings) {
                 if (warning.playerId() == member.getIdLong()) {
                     memberWarnings.add(warning);
                 }
@@ -116,39 +61,6 @@ public class CommandActions {
         };
     }
 
-    public static Function<AdminCommand, MessageEmbed> setTagCommand(Listener listener) {
-        return cmd -> {
-            Message message = cmd.message();
-            Member member = message.getMember();
-            if (!member.getRoles().contains(member.getGuild().getRoleById(Roles.STAFF.getId())) ||
-                cmd.arguments().length < 2) {
-                return null;
-            }
-
-            String[] args = cmd.arguments();
-
-            String embed = message.getContentRaw().replaceFirst(Pattern.quote(cmd.command()), "")
-                .replaceFirst(Pattern.quote(args[0]), "")
-                .trim();
-
-            loop:
-            {
-                Document d = new Document("_id", args[0]);
-                for (Document document : listener.getCommandsDb().find()) {
-                    if (document.get("_id").equals(args[0])) {
-                        listener.getCommandsDb().replaceOne(document, d.append("message", embed));
-                        break loop;
-                    }
-                }
-                listener.getCommandsDb().insertOne(d.append("message", embed));
-            }
-
-            listener.getTags().put(args[0], embed);
-
-            return Util.parseMessage(null, embed).build();
-        };
-    }
-
     public static Function<AdminCommand, MessageEmbed> tagsCommand(Listener listener) {
         return cmd -> {
             Set<? extends String> set = new HashSet<>(listener.getCommands().keySet());
@@ -156,149 +68,8 @@ public class CommandActions {
 
             EmbedBuilder builder = new EmbedBuilder()
                 .setTitle("\uD83C\uDFF7 Available tags:")
-                .setDescription("`" + String.join("`, `", listener.getTags().keySet()) + "`, `" +
+                .setDescription("`" + String.join("`, `", Main.tags.keySet()) + "`, `" +
                     String.join("`, `", set) + "`");
-
-            return builder.build();
-        };
-    }
-
-    public static Function<AdminCommand, MessageEmbed> banCommand() {
-        return cmd -> {
-            Guild guild = cmd.message().getGuild();
-            Message message = cmd.message();
-            if (!message.getMember().getRoles()
-                .contains(guild.getRoleById(Roles.STAFF.getId()))) {
-                return null;
-            }
-
-            String[] args = cmd.arguments();
-
-            int days;
-            try {
-                days = Integer.parseInt(args[1]);
-            } catch (NumberFormatException e) {
-                days = 0;
-            }
-
-            String reason = String.join(
-                " ",
-                Arrays.copyOfRange(args, 2, args.length)
-            );
-
-            Member member;
-            List<Member> members = message.getMentionedMembers();
-            if (members.size() > 0) {
-                member = members.get(0);
-            } else {
-                return null;
-            }
-
-            EmbedBuilder builder = new EmbedBuilder()
-                .setTitle("User Banned!")
-                .setDescription(String.format(
-                    "%s has been banned by %s for: `%s`\n\nThe user is now gone forever!",
-                    member.getAsMention(),
-                    message.getAuthor().getAsMention(),
-                    reason
-                ))
-                .setColor(Color.RED);
-
-            member.ban(days, reason).queue();
-
-            return builder.build();
-        };
-    }
-
-    public static Function<AdminCommand, MessageEmbed> kickCommand() {
-        return cmd -> {
-            Guild guild = cmd.message().getGuild();
-            Message message = cmd.message();
-            if (!message.getMember().getRoles()
-                .contains(guild.getRoleById(Roles.STAFF.getId()))) {
-                return null;
-            }
-
-            String[] args = cmd.arguments();
-
-            String reason = String.join(
-                " ",
-                Arrays.copyOfRange(args, 2, args.length)
-            );
-
-            Member member;
-            List<Member> members = message.getMentionedMembers();
-            if (members.size() > 0) {
-                member = members.get(0);
-            } else {
-                return null;
-            }
-
-            EmbedBuilder builder = new EmbedBuilder()
-                .setTitle("User Kicked!")
-                .setDescription(String.format(
-                    "%s has been kicked by %s for: `%s`",
-                    member.getAsMention(),
-                    message.getAuthor().getAsMention(),
-                    reason
-                ))
-                .setColor(Color.RED);
-
-            member.kick(reason).queue();
-
-            return builder.build();
-        };
-    }
-
-    public static Function<AdminCommand, MessageEmbed> muteCommand() {
-        return cmd -> {
-            Guild guild = cmd.message().getGuild();
-            Message message = cmd.message();
-            if (!message.getMember().getRoles()
-                .contains(guild.getRoleById(Roles.STAFF.getId()))) {
-                return null;
-            }
-
-            String[] args = cmd.arguments();
-
-            String reason = String.join(
-                " ",
-                Arrays.copyOfRange(args, 2, args.length)
-            );
-
-            Member member;
-            List<Member> members = message.getMentionedMembers();
-            if (!members.isEmpty()) {
-                member = members.get(0);
-            } else {
-                return null;
-            }
-
-            long time;
-            try {
-                time = Util.getMillisFromString(args[1]);
-            } catch (ArrayIndexOutOfBoundsException | IllegalArgumentException e) {
-                time = Long.MAX_VALUE;
-            }
-
-            guild.addRoleToMember(member, guild.getRoleById(Roles.MUTED.getId())).queue();
-
-            if (time != Long.MAX_VALUE) {
-                guild.removeRoleFromMember(member, guild.getRoleById(Roles.MUTED.getId()))
-                    .queueAfter(time, TimeUnit.MILLISECONDS);
-            }
-
-            EmbedBuilder builder = new EmbedBuilder()
-                .setTitle("User Muted!")
-                .setDescription(String.format(
-                    "%s has been muted by %s. Reason: `%s`\n\nDuration: %s %s",
-                    member.getAsMention(),
-                    message.getAuthor().getAsMention(),
-                    reason,
-                    args[1].substring(0, args[1].length() - 1),
-                    Util.getTimeUnitName(args[1].charAt(args[1].length() - 1))
-                ))
-                .setColor(Color.RED);
 
             return builder.build();
         };

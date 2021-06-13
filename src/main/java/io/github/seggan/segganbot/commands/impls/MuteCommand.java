@@ -22,11 +22,6 @@ public class MuteCommand extends AbstractAdminCommand {
 
     @Override
     protected void execute(@NotNull Message message, @NotNull ListOrderedMap<String, String> args, @NotNull Member member) {
-        Guild guild = message.getGuild();
-        if (!member.getRoles().contains(guild.getRoleById(Roles.STAFF.getId()))) {
-            return;
-        }
-
         long time;
         try {
             time = Util.getMillisFromString(args.get("time"));
@@ -34,6 +29,7 @@ public class MuteCommand extends AbstractAdminCommand {
             time = Long.MAX_VALUE;
         }
 
+        Guild guild = message.getGuild();
         Member toBeMuted = guild.getMemberById(Long.parseLong(args.get("user")));
         if (toBeMuted == null) {
             message.getChannel().sendMessage("Invalid user id").queue();

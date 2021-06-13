@@ -1,6 +1,7 @@
 package io.github.seggan.segganbot.commands;
 
 import io.github.seggan.segganbot.Listener;
+import io.github.seggan.segganbot.Util;
 import io.github.seggan.segganbot.constants.Patterns;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
@@ -9,7 +10,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
-import java.util.Objects;
 import java.util.regex.Pattern;
 
 public abstract class AbstractAdminCommand {
@@ -41,7 +41,15 @@ public abstract class AbstractAdminCommand {
         }
     }
 
-    public final void startExecution(Message message) {
+    public final void startExecution(@NotNull Message message) {
+        Member member = message.getMember();
+        assert member != null;
+
+        if (!Util.isAdmin(member)) {
+            message.getChannel().sendMessage("You must be staff to execute this command").queue();
+            return;
+        }
+
         String[] split = Patterns.SPACE.split(message.getContentRaw()); // get arguments
         String[] args = Arrays.copyOfRange( // remove 1st item (the command itself)
             split,
@@ -87,7 +95,7 @@ public abstract class AbstractAdminCommand {
             pass.put(argumentTypes.lastKey(), builder.toString()); // add the vararg parameter
         }
 
-        execute(message, pass, Objects.requireNonNull(message.getMember()));
+        execute(message, pass, member);
     }
 
     @NotNull
