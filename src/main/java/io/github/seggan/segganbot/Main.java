@@ -31,12 +31,26 @@ import java.util.Set;
 import javax.security.auth.login.LoginException;
 
 public class Main {
-    public static final MongoCollection<Document> warningDb;
-    public static final MongoCollection<Document> commandsDb;
+    public static MongoCollection<Document> warningDb;
+    public static MongoCollection<Document> commandsDb;
     public static final Map<String, String> tags = new HashMap<>();
     public static final Set<Warning> warnings = new HashSet<>();
 
-    static {
+    public static JDA jda = null;
+    public static final JsonObject config = JsonParser.parseString(Util.getFileAsString(new File("config.json"))).getAsJsonObject();
+
+    public static void main(String[] args) throws LoginException, InterruptedException {
+        setup();
+        JDABuilder jdaBuilder = JDABuilder.createDefault(config.get("discord").getAsString());
+        setupCommands();
+        jdaBuilder.addEventListeners(new Listener());
+        jdaBuilder.setEnabledIntents(GatewayIntent.GUILD_MEMBERS, EnumSet.allOf(GatewayIntent.class).toArray(new GatewayIntent[0]));
+        jda = jdaBuilder.build().awaitReady();
+        // setPerms();
+        // setSlowMode();
+    }
+
+    private static void setup() {
         MongoClient mongoClient = MongoClients.create(
             "mongodb+srv://SegganBot:" + Main.config.get("mongo").getAsString() + "@cluster0.9lcjl.mongodb.net/<dbname>?retryWrites=true&w=majority");
         MongoDatabase database = mongoClient.getDatabase("segganbot");
@@ -51,19 +65,6 @@ public class Main {
         for (Document document : commandsDb.find()) {
             tags.put(document.getString("_id"), document.getString("message"));
         }
-    }
-
-    public static JDA jda = null;
-    public static final JsonObject config = JsonParser.parseString(Util.getFileAsString(new File("config.json"))).getAsJsonObject();
-
-    public static void main(String[] args) throws LoginException, InterruptedException {
-        JDABuilder jdaBuilder = JDABuilder.createDefault(config.get("discord").getAsString());
-        setupCommands();
-        jdaBuilder.addEventListeners(new Listener());
-        jdaBuilder.setEnabledIntents(GatewayIntent.GUILD_MEMBERS, EnumSet.allOf(GatewayIntent.class).toArray(new GatewayIntent[0]));
-        jda = jdaBuilder.build().awaitReady();
-        // setPerms();
-        // setSlowMode();
     }
 
     private static void setupCommands() {
