@@ -8,20 +8,20 @@ import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.Role;
+import org.apache.commons.collections4.map.ListOrderedMap;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 public class MuteCommand extends AbstractAdminCommand {
 
     public MuteCommand() {
-        super("mute", "<user:int> <time:string>");
+        super("mute", "<user:int> <time:string> <reason:string...>");
     }
 
     @Override
-    protected void execute(@NotNull Message message, @NotNull Map<String, String> args, @NotNull String content, @NotNull Member member) {
+    protected void execute(@NotNull Message message, @NotNull ListOrderedMap<String, String> args, @NotNull Member member) {
         Guild guild = message.getGuild();
         if (!member.getRoles().contains(guild.getRoleById(Roles.STAFF.getId()))) {
             return;
@@ -35,7 +35,10 @@ public class MuteCommand extends AbstractAdminCommand {
         }
 
         Member toBeMuted = guild.getMemberById(Long.parseLong(args.get("user")));
-        assert toBeMuted != null;
+        if (toBeMuted == null) {
+            message.getChannel().sendMessage("Invalid user id").queue();
+            return;
+        }
 
         Role muted = Roles.MUTED.getRole();
         guild.addRoleToMember(toBeMuted, muted).queue();
@@ -50,9 +53,10 @@ public class MuteCommand extends AbstractAdminCommand {
         EmbedBuilder builder = new EmbedBuilder()
             .setTitle("User Muted!")
             .setDescription(String.format(
-                "%s has been muted by %s.\nDuration: %s %s",
+                "%s has been muted by %s. Reason: `%s`\n\nDuration: %s %s",
                 toBeMuted.getAsMention(),
                 member.getAsMention(),
+                args.get("reason"),
                 timeString.substring(0, timeString.length() - 1),
                 Util.getTimeUnitName(timeString.charAt(timeString.length() - 1))
             ))

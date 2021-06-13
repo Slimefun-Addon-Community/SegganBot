@@ -9,8 +9,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Objects;
 import java.util.regex.Pattern;
 
@@ -18,11 +16,8 @@ public abstract class AbstractAdminCommand {
 
     private static final Pattern ARGUMENT_PATTERN = Pattern.compile("(<\\w+:\\w+>( )*)+");
 
-
     private final String name;
-
     private final String argumentString;
-
     private final ListOrderedMap<String, String> argumentTypes = new ListOrderedMap<>();
 
     public AbstractAdminCommand(@NotNull String name, @Nullable String arguments) {
@@ -46,35 +41,53 @@ public abstract class AbstractAdminCommand {
         }
     }
 
-    public void startExecuting(Message message) {
-        String[] split = Patterns.SPACE.split(message.getContentRaw());
-        String[] args = Arrays.copyOfRange(
+    public final void startExecution(Message message) {
+        String[] split = Patterns.SPACE.split(message.getContentRaw()); // get arguments
+        String[] args = Arrays.copyOfRange( // remove 1st item (the command itself)
             split,
             1,
             split.length
         );
 
-        Map<String, String> pass = new HashMap<>();
+        ListOrderedMap<String, String> pass = new ListOrderedMap<>();
 
+        StringBuilder builder = new StringBuilder();
         for (int i = 0; i < args.length; i++) {
             String s = args[i];
 
             String req;
             try {
-                req = argumentTypes.getValue(i);
+                req = argumentTypes.getValue(i); // get the corresponding required type
             } catch (IndexOutOfBoundsException e) {
-                req = "\0";
+                req = "\0"; // if not found set to null string
             }
 
-            if (!getType(s).equals(req)) {
-                message.getChannel().sendMessage("Format: " + argumentString).queue();
-                return;
+            if (!builder.isEmpty() || req.endsWith("...")) { // if were constructing a vararg or the type is a vararg
+                builder.append(s); // add the string to the vararg
+                builder.append(' ');
             }
 
-            pass.put(argumentTypes.get(i), s);
+            if (builder.isEmpty()) { // if not constructing vararg
+                if (!getType(s).equals(req)) { // if wrong type (null string will return false so it will fail)
+                    message.getChannel().sendMessage("Format: !" + name + ' ' + argumentString).queue();
+                    return;
+                }
+
+                pass.put(argumentTypes.get(i), s); // otherwise add to parameters
+            }
         }
 
-        execute(message, pass, message.getContentRaw(), Objects.requireNonNull(message.getMember()));
+        if (pass.size() != argumentTypes.size()) {
+            message.getChannel().sendMessage("Format: !" + name + ' ' + argumentString).queue();
+            return;
+        }
+
+        if (!builder.isEmpty()) { // if we were constructing a vararg
+            builder.deleteCharAt(builder.lastIndexOf(" "));
+            pass.put(argumentTypes.lastKey(), builder.toString()); // add the vararg parameter
+        }
+
+        execute(message, pass, Objects.requireNonNull(message.getMember()));
     }
 
     @NotNull
@@ -86,7 +99,7 @@ public abstract class AbstractAdminCommand {
         }
     }
 
-    protected abstract void execute(@NotNull Message message, @NotNull Map<String, String> args, @NotNull String content, @NotNull Member member);
+    protected abstract void execute(@NotNull Message message, @NotNull ListOrderedMap<String, String> args, @NotNull Member member);
 
     public String getName() {
         return name;

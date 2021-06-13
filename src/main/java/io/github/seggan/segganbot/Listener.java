@@ -101,7 +101,7 @@ public final class Listener extends ListenerAdapter {
         if (command != null) {
             for (AbstractAdminCommand adminCommand : adminCommands) {
                 if (adminCommand.getName().equals(command.command().replace("!", ""))) {
-                    adminCommand.startExecuting(e.getMessage());
+                    adminCommand.startExecution(e.getMessage());
                     break bigIf;
                 }
             }
