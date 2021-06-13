@@ -85,14 +85,14 @@ public abstract class AbstractAdminCommand {
             }
         }
 
-        if (pass.size() != argumentTypes.size()) {
-            message.getChannel().sendMessage("Format: !" + name + ' ' + argumentString).queue();
-            return;
-        }
-
         if (!builder.isEmpty()) { // if we were constructing a vararg
             builder.deleteCharAt(builder.lastIndexOf(" "));
             pass.put(argumentTypes.lastKey(), builder.toString()); // add the vararg parameter
+        }
+
+        if (pass.size() != argumentTypes.size()) {
+            message.getChannel().sendMessage("Format: !" + name + ' ' + argumentString).queue();
+            return;
         }
 
         execute(message, pass, member);
