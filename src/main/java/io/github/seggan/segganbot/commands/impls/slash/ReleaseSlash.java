@@ -2,8 +2,10 @@ package io.github.seggan.segganbot.commands.impls.slash;
 
 import io.github.seggan.segganbot.Main;
 import io.github.seggan.segganbot.commands.AbstractSlashCommand;
+import io.github.seggan.segganbot.constants.Roles;
 import net.dv8tion.jda.api.entities.Category;
 import net.dv8tion.jda.api.entities.GuildChannel;
+import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.interactions.InteractionHook;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
@@ -19,6 +21,11 @@ public final class ReleaseSlash extends AbstractSlashCommand {
     @Override
     protected void getData(@NotNull CommandData data) {
         data.addOption(OptionType.CHANNEL, "channel", "the channel to move", true);
+    }
+
+    @Override
+    public boolean canExecute(@NotNull Member member) {
+        return member.getRoles().contains(Roles.ADDON_CREATORS.getRole());
     }
 
     @Override
