@@ -6,16 +6,19 @@ import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
+import io.github.seggan.segganbot.commands.AbstractSlashCommand;
 import io.github.seggan.segganbot.commands.impls.BanCommand;
 import io.github.seggan.segganbot.commands.impls.KickCommand;
 import io.github.seggan.segganbot.commands.impls.MuteCommand;
 import io.github.seggan.segganbot.commands.impls.PingCommand;
 import io.github.seggan.segganbot.commands.impls.SetTagCommand;
 import io.github.seggan.segganbot.commands.impls.WarnCommand;
+import io.github.seggan.segganbot.commands.impls.slash.ReleaseSlash;
 import io.github.seggan.segganbot.constants.Roles;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.Category;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.managers.ChannelManager;
@@ -35,6 +38,7 @@ public class Main {
     public static MongoCollection<Document> commandsDb;
     public static final Map<String, String> tags = new HashMap<>();
     public static final Set<Warning> warnings = new HashSet<>();
+    public static final Set<AbstractSlashCommand> slashCommands = new HashSet<>();
 
     public static JDA jda = null;
     public static final JsonObject config = JsonParser.parseString(Util.getFileAsString(new File("config.json"))).getAsJsonObject();
@@ -42,10 +46,10 @@ public class Main {
     public static void main(String[] args) throws LoginException, InterruptedException {
         setup();
         JDABuilder jdaBuilder = JDABuilder.createDefault(config.get("discord").getAsString());
-        setupCommands();
         jdaBuilder.addEventListeners(new Listener());
         jdaBuilder.setEnabledIntents(GatewayIntent.GUILD_MEMBERS, EnumSet.allOf(GatewayIntent.class).toArray(new GatewayIntent[0]));
         jda = jdaBuilder.build().awaitReady();
+        setupCommands();
         // setPerms();
         // setSlowMode();
     }
@@ -68,18 +72,32 @@ public class Main {
     }
 
     private static void setupCommands() {
+        // admin
         new PingCommand();
         new MuteCommand();
         new KickCommand();
         new BanCommand();
         new WarnCommand();
         new SetTagCommand();
+
+        // slash
+        new ReleaseSlash();
     }
 
     private static void setPerms() {
         Role role = jda.getRoleById(Roles.MUTED.getId());
         for (TextChannel channel : jda.getTextChannels()) {
             ChannelManager manager = channel.getManager();
+
+            manager.putPermissionOverride(role, null, EnumSet.of(
+                Permission.MESSAGE_WRITE,
+                Permission.MESSAGE_ADD_REACTION,
+                Permission.MESSAGE_TTS,
+                Permission.MESSAGE_ATTACH_FILES
+            )).queue();
+        }
+        for (Category category : jda.getCategories()) {
+            ChannelManager manager = category.getManager();
 
             manager.putPermissionOverride(role, null, EnumSet.of(
                 Permission.MESSAGE_WRITE,

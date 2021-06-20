@@ -7,6 +7,7 @@ import com.besaba.revonline.pastebinapi.paste.PasteExpire;
 import com.besaba.revonline.pastebinapi.paste.PasteVisiblity;
 import com.besaba.revonline.pastebinapi.response.Response;
 import io.github.seggan.segganbot.commands.AbstractAdminCommand;
+import io.github.seggan.segganbot.commands.AbstractSlashCommand;
 import io.github.seggan.segganbot.commands.AdminCommand;
 import io.github.seggan.segganbot.commands.CommandActions;
 import io.github.seggan.segganbot.constants.Channels;
@@ -18,6 +19,7 @@ import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageChannel;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberJoinEvent;
+import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.jetbrains.annotations.NotNull;
@@ -57,6 +59,20 @@ public final class Listener extends ListenerAdapter {
             .setColor(Color.GREEN)
             .setDescription("Welcome to the Slimefun Addon Community Server!\n\nIf you want help with a specific addon, go to its respective channel. Addon updates can be found in " + Channels.CHANGELOGS.getChannel().getAsMention());
         Channels.WELCOMES.getChannel().sendMessage(builder.build()).queue();
+    }
+
+    @Override
+    public void onSlashCommand(@NotNull SlashCommandEvent event) {
+        for (AbstractSlashCommand command : Main.slashCommands) {
+            if (command.getName().equals(event.getName())) {
+                if (command.canExecute(event.getMember())) {
+                    command.execute(event, event.getHook());
+                    break;
+                } else {
+                    event.reply("You don;t have the required permissions to execute this command");
+                }
+            }
+        }
     }
 
     @Override
