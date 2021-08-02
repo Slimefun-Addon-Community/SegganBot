@@ -4,6 +4,7 @@ import io.github.seggan.segganbot.constants.Patterns;
 import io.github.seggan.segganbot.constants.Roles;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.MessageChannel;
 import net.dv8tion.jda.api.entities.Role;
@@ -38,6 +39,17 @@ public final class Util {
         return (member.getIdLong() == 516651203661266958L || member.getIdLong() == 312246160133980163L) ||
             member.hasPermission(Permission.ADMINISTRATOR) ||
             (roles.contains(Roles.ADMIN.getRole()) || roles.contains(Roles.STAFF.getRole()));
+    }
+
+    public static Member getMember(@NotNull String id, @NotNull Guild guild) {
+        long l = Long.parseLong(id);
+        for (Member member : guild.getMembers()) {
+            if (member.getIdLong() == l) {
+                return member;
+            }
+        }
+
+        return null;
     }
 
     public static void sendMessage(MessageChannel channel, String message) {

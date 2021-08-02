@@ -14,6 +14,7 @@ import io.github.seggan.segganbot.commands.impls.PingCommand;
 import io.github.seggan.segganbot.commands.impls.SetTagCommand;
 import io.github.seggan.segganbot.commands.impls.WarnCommand;
 import io.github.seggan.segganbot.commands.impls.slash.ReleaseSlash;
+import io.github.seggan.segganbot.commands.impls.slash.SaySlash;
 import io.github.seggan.segganbot.constants.Roles;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
@@ -23,6 +24,8 @@ import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.managers.ChannelManager;
 import net.dv8tion.jda.api.requests.GatewayIntent;
+import net.dv8tion.jda.api.utils.ChunkingFilter;
+import net.dv8tion.jda.api.utils.MemberCachePolicy;
 import org.bson.Document;
 
 import java.io.File;
@@ -45,7 +48,10 @@ public class Main {
 
     public static void main(String[] args) throws LoginException, InterruptedException {
         setup();
-        JDABuilder jdaBuilder = JDABuilder.createDefault(config.get("discord").getAsString());
+        JDABuilder jdaBuilder = JDABuilder.createDefault(config.get("discord").getAsString())
+            .setMemberCachePolicy(MemberCachePolicy.ALL)
+            .setChunkingFilter(ChunkingFilter.ALL)
+            .enableIntents(GatewayIntent.GUILD_MEMBERS);
         jdaBuilder.addEventListeners(new Listener());
         jdaBuilder.setEnabledIntents(GatewayIntent.GUILD_MEMBERS, EnumSet.allOf(GatewayIntent.class).toArray(new GatewayIntent[0]));
         jda = jdaBuilder.build().awaitReady();
@@ -82,6 +88,7 @@ public class Main {
 
         // slash
         new ReleaseSlash();
+        new SaySlash();
     }
 
     private static void setPerms() {

@@ -23,20 +23,20 @@ public class WarnCommand extends AbstractAdminCommand {
     @Override
     protected void execute(@NotNull Message message, @NotNull ListOrderedMap<String, String> args, @NotNull Member member) {
         Guild guild = message.getGuild();
-        Member toBeMuted = guild.getMemberById(Long.parseLong(args.get("user")));
-        if (toBeMuted == null) {
+        Member toBeWarned = guild.getMemberById(args.get("user"));
+        if (toBeWarned == null) {
             message.getChannel().sendMessage("Invalid user id").queue();
             return;
         }
 
-        Warning warning = new Warning(member.getIdLong(), Instant.now(), args.get("reason"));
+        Warning warning = new Warning(toBeWarned.getIdLong(), Instant.now(), args.get("reason"));
 
         EmbedBuilder builder = new EmbedBuilder()
             .setTitle("User Warned!")
             .setDescription(String.format(
                 "%s has been warned by %s for: `%s`",
+                toBeWarned.getAsMention(),
                 member.getAsMention(),
-                message.getAuthor().getAsMention(),
                 args.get("reason")
             ))
             .setColor(Color.RED);

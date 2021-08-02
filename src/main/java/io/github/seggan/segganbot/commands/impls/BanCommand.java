@@ -12,7 +12,7 @@ import java.awt.*;
 public class BanCommand extends AbstractAdminCommand {
 
     public BanCommand() {
-        super("ban", "<days:int> <reason:string...>");
+        super("ban", "<user:int> <days:int> <reason:string...>");
     }
 
     @Override
@@ -24,7 +24,7 @@ public class BanCommand extends AbstractAdminCommand {
             days = 0;
         }
 
-        Member toBeBanned = message.getGuild().getMemberById(Long.parseLong(args.get("user")));
+        Member toBeBanned = message.getGuild().getMemberById(args.get("user"));
         if (toBeBanned == null) {
             message.getChannel().sendMessage("Invalid user id").queue();
             return;
@@ -36,8 +36,8 @@ public class BanCommand extends AbstractAdminCommand {
             .setTitle("User Banned!")
             .setDescription(String.format(
                 "%s has been banned by %s for: `%s`\n\nThe user is now gone forever!",
+                toBeBanned.getAsMention(),
                 member.getAsMention(),
-                message.getAuthor().getAsMention(),
                 args.get("reason")
             ))
             .setColor(Color.RED);

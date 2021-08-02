@@ -30,7 +30,7 @@ public class MuteCommand extends AbstractAdminCommand {
         }
 
         Guild guild = message.getGuild();
-        Member toBeMuted = guild.getMemberById(Long.parseLong(args.get("user")));
+        Member toBeMuted = guild.getMemberById(args.get("user"));
         if (toBeMuted == null) {
             message.getChannel().sendMessage("Invalid user id").queue();
             return;

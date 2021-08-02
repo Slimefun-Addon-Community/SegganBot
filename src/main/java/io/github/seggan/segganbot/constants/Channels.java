@@ -8,6 +8,7 @@ import lombok.Getter;
 @Getter
 public enum Channels {
     CHANGELOGS(809186242746253363L),
+    ANNOUNCEMENTS(809186153139798066L),
     WELCOMES(809183642651328563L);
 
     private final long id;

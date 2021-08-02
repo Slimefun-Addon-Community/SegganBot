@@ -17,7 +17,7 @@ public class KickCommand extends AbstractAdminCommand {
 
     @Override
     protected void execute(@NotNull Message message, @NotNull ListOrderedMap<String, String> args, @NotNull Member member) {
-        Member toBeKicked = message.getGuild().getMemberById(Long.parseLong(args.get("user")));
+        Member toBeKicked = message.getGuild().getMemberById(args.get("user"));
         if (toBeKicked == null) {
             message.getChannel().sendMessage("Invalid user id").queue();
             return;
