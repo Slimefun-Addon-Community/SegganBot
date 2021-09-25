@@ -13,8 +13,6 @@ import io.github.seggan.segganbot.commands.impls.MuteCommand;
 import io.github.seggan.segganbot.commands.impls.PingCommand;
 import io.github.seggan.segganbot.commands.impls.SetTagCommand;
 import io.github.seggan.segganbot.commands.impls.WarnCommand;
-import io.github.seggan.segganbot.commands.impls.slash.ReleaseSlash;
-import io.github.seggan.segganbot.commands.impls.slash.SaySlash;
 import io.github.seggan.segganbot.constants.Roles;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
@@ -87,8 +85,8 @@ public class Main {
         new SetTagCommand();
 
         // slash
-        new ReleaseSlash();
-        new SaySlash();
+        //new ReleaseSlash();
+        //new SaySlash();
     }
 
     private static void setPerms() {

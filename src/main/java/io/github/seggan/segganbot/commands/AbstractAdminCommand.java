@@ -2,6 +2,7 @@ package io.github.seggan.segganbot.commands;
 
 import io.github.seggan.segganbot.Listener;
 import io.github.seggan.segganbot.Util;
+import io.github.seggan.segganbot.constants.Channels;
 import io.github.seggan.segganbot.constants.Patterns;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
@@ -9,6 +10,10 @@ import org.apache.commons.collections4.map.ListOrderedMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.io.UncheckedIOException;
 import java.util.Arrays;
 import java.util.regex.Pattern;
 
@@ -95,7 +100,25 @@ public abstract class AbstractAdminCommand {
             return;
         }
 
-        execute(message, pass, member);
+        try {
+            execute(message, pass, member);
+        } catch (Exception e) {
+            String trace;
+            try (StringWriter writer = new StringWriter();
+                 PrintWriter printWriter = new PrintWriter(writer)) {
+                e.printStackTrace(printWriter);
+                trace = writer.toString();
+            } catch (IOException ioException) {
+                throw new UncheckedIOException(ioException);
+            }
+
+            Channels.BOT_TESTING.getChannel().sendMessage(String.format("""
+                    ```
+                    %s
+                    ```""",
+                trace
+            )).queue();
+        }
     }
 
     @NotNull

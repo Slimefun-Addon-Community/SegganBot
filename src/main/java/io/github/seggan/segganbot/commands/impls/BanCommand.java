@@ -12,25 +12,18 @@ import java.awt.*;
 public class BanCommand extends AbstractAdminCommand {
 
     public BanCommand() {
-        super("ban", "<user:int> <days:int> <reason:string...>");
+        super("ban", "<user:int> <reason:string...>");
     }
 
     @Override
     protected void execute(@NotNull Message message, @NotNull ListOrderedMap<String, String> args, @NotNull Member member) {
-        int days;
-        try {
-            days = Integer.parseInt(args.get("days"));
-        } catch (NumberFormatException e) {
-            days = 0;
-        }
-
         Member toBeBanned = message.getGuild().getMemberById(args.get("user"));
         if (toBeBanned == null) {
             message.getChannel().sendMessage("Invalid user id").queue();
             return;
         }
 
-        member.ban(days, args.get("reason")).queue();
+        toBeBanned.ban(1, args.get("reason")).queue();
 
         EmbedBuilder builder = new EmbedBuilder()
             .setTitle("User Banned!")
