@@ -2,7 +2,6 @@ package io.github.seggan.segganbot.commands;
 
 import io.github.seggan.segganbot.Listener;
 import io.github.seggan.segganbot.Util;
-import io.github.seggan.segganbot.constants.Channels;
 import io.github.seggan.segganbot.constants.Patterns;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
@@ -112,11 +111,11 @@ public abstract class AbstractAdminCommand {
                 throw new UncheckedIOException(ioException);
             }
 
-            Channels.BOT_TESTING.getChannel().sendMessage(String.format("""
+            message.getChannel().sendMessage(String.format("""
                     ```
                     %s
                     ```""",
-                trace
+                trace.substring(0, Math.min(trace.length(), 1990))
             )).queue();
         }
     }
